@@ -1,5 +1,7 @@
 package com.vipin.auth.model.dto;
 
+import com.vipin.auth.enums.Roles;
+import com.vipin.auth.model.response.UserResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +12,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {
-    private boolean success ;
-    private String data;
-    private String message;
+    private String fullName;
+    private String email;
+    private String profileImageUrl;
+    private Roles role;
+    private AddressDto address;
+
 }

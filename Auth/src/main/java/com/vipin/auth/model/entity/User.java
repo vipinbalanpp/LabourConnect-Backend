@@ -20,7 +20,7 @@ public class User {
     private String fullName;
     private String password;
     private String email;
+    @Enumerated(EnumType.STRING)
     private Roles role;
     private boolean isBlocked;
-
 }

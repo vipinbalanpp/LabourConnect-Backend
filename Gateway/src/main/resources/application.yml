@@ -1,6 +1,8 @@
 server:
   port: 8080
 spring:
+  application:
+    name: gateway
   cloud:
     gateway:
       globalcors:
@@ -13,19 +15,20 @@ spring:
               - POST
               - PUT
               - DELETE
+              - PATCH
             allowedHeaders:
               - "*"
             allowCredentials: true
             maxAge: 3600
-      routes:
-        - id: AUTH
-          predicates:
-            - Path=/auth/**
-          uri: lb://auth
-        - id: notification
-          predicates:
-            - Path=/notification/**
-          uri: "http://localhost:8082"
+#      routes:
+#        - id: AUTH
+#          predicates:
+#            - Path=/auth/**
+#          uri: lb://auth
+#        - id: notification
+#          predicates:
+#            - Path=/notification/**
+#          uri: "localhost:8082"
 eureka:
   client:
     serviceUrl:

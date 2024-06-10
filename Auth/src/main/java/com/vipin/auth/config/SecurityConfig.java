@@ -1,9 +1,8 @@
 package com.vipin.auth.config;
-import com.vipin.auth.filter.JwtAuthenticationFilter;
+//import com.vipin.auth.filter.JwtAuthenticationFilter;
 import com.vipin.auth.service.security.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -30,13 +29,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws  Exception{
         http.sessionManagement(session ->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .cors(corsCustomizer->corsCustomizer.configurationSource(request -> {
-                    CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
-                    config.setAllowedMethods(Collections.singletonList("*"));
-                    config.setAllowCredentials(true);
-                    return config;
-                }))
+                .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request->request
                         .requestMatchers("/**").permitAll());
@@ -47,10 +40,10 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService(){
         return new CustomUserDetailsService();
     }
-    @Bean
-    JwtAuthenticationFilter jwtAuthenticationFilter(){
-        return new JwtAuthenticationFilter();
-    }
+//    @Bean
+//    JwtAuthenticationFilter jwtAuthenticationFilter(){
+//        return new JwtAuthenticationFilter();
+//    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)throws Exception{

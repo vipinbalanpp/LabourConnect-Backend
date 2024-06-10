@@ -10,7 +10,6 @@ import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/v1")
-@CrossOrigin(origins = "http://localhost:5173",allowCredentials = "true")
 public class NotificationController {
     OtpService otpService;
     MailService mailService;
@@ -21,15 +20,14 @@ public class NotificationController {
 
     @PostMapping("/send-otp")
     public ResponseEntity<String> sendOtp(@RequestParam String email){
-       try {
-           System.out.println(email);
+
+
+           System.out.println(email+" email from frontent");
            String otp =   otpService.generateAndStoreOtp(email);
            System.out.println(otp+" otosfhls");
            mailService.sendOtpEmail(email,otp);
            return new ResponseEntity<>("otp send successfully", HttpStatus.OK);
-       }catch (Exception e){
-           throw new RuntimeException("error sending mail");
-       }
+
     }
     @PostMapping("/verify-otp")
     public ResponseEntity<VerifyOtpResponseDto> verifyOtp(@RequestParam String email, @RequestParam String otp) {

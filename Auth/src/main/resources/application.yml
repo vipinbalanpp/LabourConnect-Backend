@@ -1,12 +1,11 @@
-
 spring:
   application:
-    name: Auth
+    name: auth
   output:
     ansi:
       enabled: always
   datasource:
-    url: jdbc:postgresql://localhost:5432/auth
+    url: jdbc:postgresql://localhost:5432/auth_labourconnect
     username: postgres
     password: '1205'
     driver-class-name: org.postgresql.Driver
