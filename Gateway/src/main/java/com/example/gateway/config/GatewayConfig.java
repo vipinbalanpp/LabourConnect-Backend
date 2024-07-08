@@ -21,10 +21,14 @@ public class GatewayConfig {
                 .route("user-route",p->
                                 p.path("/user/**")
                         .uri("http://localhost:8083"))
+                .route("user-route",p->
+                        p.path("/booking/**")
+                                .uri("http://localhost:8084"))
                 .build();
     }
     @Bean
     public GlobalFilter globalFilter(){
         return new GatewayUriPathLogger();
     }
+
 }

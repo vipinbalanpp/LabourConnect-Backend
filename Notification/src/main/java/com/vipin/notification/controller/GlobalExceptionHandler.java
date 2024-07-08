@@ -13,4 +13,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(
                 invalidEmailException.getMessage());
     }
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity runtimeException(RuntimeException runtimeException){
+        return ResponseEntity.badRequest().body(
+                runtimeException.getMessage());
+    }
 }

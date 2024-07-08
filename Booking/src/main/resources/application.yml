@@ -1,0 +1,11 @@
+server:
+  port: 8084
+spring:
+  application:
+    name = booking
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: booking-service
+

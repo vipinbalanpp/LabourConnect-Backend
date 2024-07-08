@@ -1,8 +1,8 @@
 package com.vipin.notification.service;
 
 import com.vipin.notification.exception.InvalidEmailException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -12,14 +12,11 @@ import java.util.Random;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class OtpService {
-    private RedisTemplate<String,String> redisTemplate;
-     private RestTemplate restTemplate;
-    public OtpService(RedisTemplate<String,String> redisTemplate,
-                      RestTemplate restTemplate){
-        this.redisTemplate = redisTemplate;
-        this.restTemplate = restTemplate;
-    }
+    private final RedisTemplate<String,String> redisTemplate;
+     private final RestTemplate restTemplate;
+
 
     public String generateAndStoreOtp(String email){
         System.out.println("here");
@@ -27,11 +24,15 @@ public class OtpService {
             throw new InvalidEmailException("Email id exists");
         }
         Random random=new Random();
-        int otp=1000+random.nextInt(9999);
+        int otp=1000+random.nextInt(8999);
         System.out.println(otp);
         String key = email;
-        redisTemplate.opsForValue().set(key, String.valueOf(otp));
-        redisTemplate.expire(email, Duration.ofMinutes(2));
+     try {
+         redisTemplate.opsForValue().set(key, String.valueOf(otp));
+         redisTemplate.expire(email, Duration.ofMinutes(2));
+     }catch (Exception e){
+         throw new RuntimeException("Something went wrong while sending OTP. Please try again");
+     }
         return String.valueOf(otp);
     }
 

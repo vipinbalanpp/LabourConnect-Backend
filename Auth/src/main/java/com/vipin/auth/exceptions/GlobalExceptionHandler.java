@@ -1,6 +1,8 @@
 package com.vipin.auth.exceptions;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -11,10 +13,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(
                invalidEmailException.getMessage());
     }
-    @ExceptionHandler(UserAuthenticationException.class)
-    public ResponseEntity handleUserAuthenticationException(UserAuthenticationException userAuthenticationException){
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity handleUserAuthenticationException(RuntimeException runtimeException){
         return ResponseEntity.badRequest().body(
-                userAuthenticationException.getMessage());
+                runtimeException.getMessage());
+    }
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
     @ExceptionHandler(UserBlockedException.class)
     public ResponseEntity handleUserBlockedException(UserBlockedException userBlockedException){

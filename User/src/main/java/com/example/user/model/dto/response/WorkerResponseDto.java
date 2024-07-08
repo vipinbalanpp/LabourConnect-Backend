@@ -1,22 +1,28 @@
-package com.vipin.auth.model.dto;
+package com.example.user.model.dto.response;
 
-import com.vipin.auth.enums.Roles;
+import com.example.user.model.dto.AddressDto;
+import com.example.user.model.dto.ServiceDto;
+import com.example.user.model.entity.Address;
+import com.example.user.model.entity.Roles;
+import com.example.user.model.entity.Works;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkerResponse {
+public class WorkerResponseDto {
+    private Long id;
     private String fullName;
     private String email;
-    private String expertiseIn;
+    private ServiceDto service;
     private Long experience;
     private String mobileNumber;
     private double serviceCharge;
@@ -25,6 +31,9 @@ public class WorkerResponse {
     private LocalDate dateOfBirth;
     private Roles role;
     private String profileImageUrl;
+    private boolean isBlocked;
+    private boolean isVerified;
+    private LocalDateTime createdAt;
     private AddressDto address;
-    private List<WorkDto> works;
+    private List<Works> works;
 }

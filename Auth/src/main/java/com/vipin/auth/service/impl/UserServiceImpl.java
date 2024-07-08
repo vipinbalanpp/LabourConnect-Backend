@@ -7,10 +7,12 @@ import com.vipin.auth.exceptions.UserBlockedException;
 import com.vipin.auth.model.dto.*;
 import com.vipin.auth.model.entity.User;
 import com.vipin.auth.model.response.LoginResponse;
+import com.vipin.auth.model.response.WorkerResponseDto;
 import com.vipin.auth.repository.UserRepository;
 import com.vipin.auth.service.UserService;
 import com.vipin.auth.service.jwt.JwtService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +24,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +50,7 @@ public class UserServiceImpl implements UserService {
             user.setRole(Roles.ADMIN);
         }
         UserCreationRequest userCreationRequest = modelMapper.map(userDto, UserCreationRequest.class);
+        System.out.println("Fullname    :" + userCreationRequest.getFullName()+"   Email  :" + userCreationRequest.getEmail());
        UserResponseDto userResponseDto =  userServiceClient.createUser(userCreationRequest);
         log.info("Response when creating user from user service------: "+userResponseDto);
         User registeredUser = userRepository.save(user);
@@ -62,7 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public WorkerResponse  registerWorker(WorkerRequestDto workerRequestDto, HttpServletResponse response) throws Exception {
+    public WorkerResponseDto registerWorker(WorkerRequestDto workerRequestDto, HttpServletResponse response) throws Exception {
         if(userRepository.existsByEmail(workerRequestDto.getEmail())){
             throw new InvalidEmailException("Mail Id exists");
         }
@@ -71,11 +72,10 @@ public class UserServiceImpl implements UserService {
         user.setEmail(workerRequestDto.getEmail());
         user.setPassword(passwordEncoder.encode(workerRequestDto.getPassword()));
         user.setRole(Roles.WORKER);
-        User savedUser = userRepository.save(user);
+        userRepository.save(user);
         WorkerCreationRequest workerCreationRequest = modelMapper.map(workerRequestDto,WorkerCreationRequest.class);
-        System.out.println(workerCreationRequest.getHouseName()+"------------->from service");
-        WorkerResponse workerResponse = userServiceClient.createWorker(workerCreationRequest);
-        log.info("Response when creating worker from user service------: "+workerResponse);
+        WorkerResponseDto workerResponse = userServiceClient.createWorker(workerCreationRequest);
+        System.out.println(workerResponse.getFullName()+"----------------> after registering worker into user service");
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         workerRequestDto.getEmail(),workerRequestDto.getPassword()));
@@ -83,8 +83,6 @@ public class UserServiceImpl implements UserService {
         setCookieInResponse(response,token);
         return workerResponse;
     }
-
-
 
     @Override
     public Boolean emailExists(String email) {
@@ -142,5 +140,16 @@ public class UserServiceImpl implements UserService {
         user.setBlocked(false);
         userRepository.save(user);
         return true;
+    }
+
+    @Override
+    public void changePassword(ChangePasswordDto changePasswordDto, HttpServletRequest request) {
+        String email = jwtService.getEmailFromRequest(request);
+        User user = userRepository.findByEmail(email);
+        if (!passwordEncoder.matches(changePasswordDto.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordDto.getNewPassword()));
+        userRepository.save(user);
     }
 }

@@ -1,37 +1,56 @@
 package com.example.user.service;
-
 import com.example.user.model.dto.AddressDto;
-import com.example.user.model.dto.request.UserRequest;
-import com.example.user.model.dto.response.UserResponse;
-import com.example.user.model.dto.request.WorkerRequest;
-import com.example.user.model.dto.response.WorkerResponse;
+import com.example.user.model.dto.request.EditWorkerRequestDto;
+import com.example.user.model.dto.request.UserRequestDto;
+import com.example.user.model.dto.request.WorkerRequestDto;
+import com.example.user.model.dto.response.UserResponseDto;
+import com.example.user.model.dto.response.WorkerResponseDto;
 import com.example.user.model.entity.User;
-import com.example.user.model.entity.Worker;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface UserService {
-    UserResponse createUser(UserRequest userRequest);
+    UserResponseDto createUser(UserRequestDto userRequest);
 
-    WorkerResponse createWorker(WorkerRequest workerRequest);
+    WorkerResponseDto createWorker(WorkerRequestDto workerRequest);
 
-    UserResponse getUserDetails(String email);
+    UserResponseDto getUserDetails(String email);
 
-    WorkerResponse getWorkerDetails(String email);
+    WorkerResponseDto getWorkerDetails(String email);
 
     User getUserByEmail(String email);
 
-    List<UserResponse> getAllUsers();
+    List<UserResponseDto> getAllUsers(int pageNumber,String searchInput,Boolean isBlocked);
 
     void blockUser(String email);
 
     void unBlockUser(String email);
 
-    List<WorkerResponse> getAllWorkers();
+    List<WorkerResponseDto> getAllWorkers(Integer pageNumber,String searchInput,Boolean isBlocked,Long serviceId,Integer pageSize);
 
     void blockWorker(String email);
 
     void unBlockWorker(String email);
 
-    UserResponse addAddress(AddressDto addressDto, String email);
+    UserResponseDto addAddress(AddressDto addressDto, String email);
+
+    void editWorkerDetails(EditWorkerRequestDto editWorkerDto, String email);
+
+    void changeProfileImageUrl(String role, String email, String profileImageUrl);
+
+    void editAddress(AddressDto addressDto, HttpServletRequest request);
+
+    void editFullName(String fullName, HttpServletRequest request);
+
+    void addUserAddress(AddressDto addressDto, HttpServletRequest request);
+
+    UserResponseDto getUserDetailsById(Long id);
+
+    WorkerResponseDto getWorkerDetailsById(Long id);
+
+    Integer getTotalPageNumbersOfUsers(String searchInput, Boolean isBlocked);
+
+    Integer getTotalPageNumbersOfWorkers(Long serviceId, String searchInput, Boolean isBlocked,Integer pageSize);
 }

@@ -4,6 +4,7 @@ import com.vipin.auth.exceptions.JwtGenerationException;
 import com.vipin.auth.model.entity.User;
 import com.vipin.auth.repository.UserRepository;
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -41,6 +42,7 @@ public class JwtService {
             return Jwts.builder()
                     .setSubject(user.getFullName())
                     .claim("role", roles.get(0))
+                    .claim("userId",user.getUserId())
                     .claim("email",user.getEmail())
                     .setIssuedAt(currentDate)
                     .setExpiration(expirationTime)
@@ -87,5 +89,27 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody();
         claims.setExpiration(new Date(currentDate.getTime()));
+    }
+    public String getEmailFromRequest(HttpServletRequest request){
+        String token = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("jwt".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtSecret)
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.get("email", String.class);
+        } catch (SignatureException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

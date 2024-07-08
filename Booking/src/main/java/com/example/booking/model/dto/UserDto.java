@@ -1,8 +1,5 @@
-package com.example.user.model.dto.response;
+package com.example.booking.model.dto;
 
-import com.example.user.model.dto.AddressDto;
-import com.example.user.model.entity.Address;
-import com.example.user.model.entity.Roles;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,11 +11,11 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserResponse {
+public class UserDto {
     private String fullName;
     private String email;
     private String profileImageUrl;
-    private Roles role;
+    private String role;
     private String mobileNumber;
     private AddressDto address;
     private LocalDateTime createdAt;

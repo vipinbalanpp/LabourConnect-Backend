@@ -31,8 +31,6 @@ public class JwtService {
 
     public String getTokenFromRequest(HttpServletRequest request) {
         String token = null;
-
-        // Retrieve the token from the cookie
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {

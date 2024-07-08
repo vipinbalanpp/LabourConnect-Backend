@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class WorkerRequest {
+public class WorkerRequestDto {
     private String fullname;
     private String email;
     private Roles role;

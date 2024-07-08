@@ -18,7 +18,9 @@ public class Worker {
     private Long id;
     private String fullName;
     private String email;
-    private String expertiseIn;
+    @ManyToOne
+    @JoinColumn(name = "service_id", referencedColumnName = "serviceId")
+    private Services service;
     private Long experience;
     private String mobileNumber;
     private double serviceCharge;
