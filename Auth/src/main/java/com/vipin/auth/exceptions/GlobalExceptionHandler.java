@@ -27,4 +27,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(
                 userBlockedException.getMessage());
     }
+
 }

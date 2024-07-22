@@ -7,6 +7,7 @@ import com.vipin.auth.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/auth/api/v1")
+@Slf4j
 public class AuthController {
 
     private UserService userService;
@@ -23,6 +25,16 @@ public class AuthController {
     public AuthController(UserService userService, RestTemplate restTemplate){
         this.restTemplate = restTemplate;
         this.userService = userService;
+    }
+    @PostMapping("/googleAuth")
+    public ResponseEntity<?> googleAuthentication(@RequestBody UserRequestDto userRequestDto, HttpServletResponse servletResponse) {
+        try {
+            String response = userService.googleAuthentication(userRequestDto, servletResponse);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            log.error("Google authentication failed for user: {}", userRequestDto.getEmail(), e);
+            throw new RuntimeException("Google authentication failed: " + e.getMessage(), e);
+        }
     }
 
 

@@ -4,6 +4,7 @@ import com.example.user.model.dto.AddressDto;
 import com.example.user.model.dto.ServiceDto;
 import com.example.user.model.entity.Address;
 import com.example.user.model.entity.Roles;
+import com.example.user.model.entity.Worker;
 import com.example.user.model.entity.Works;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,4 +37,25 @@ public class WorkerResponseDto {
     private LocalDateTime createdAt;
     private AddressDto address;
     private List<Works> works;
+    public WorkerResponseDto(Worker worker){
+        this.fullName =worker.getFullName();
+        this.email = worker.getEmail();
+        if(worker.getService() != null)
+        this.service = new ServiceDto(worker.getService());
+        this.experience = worker.getExperience();
+        this.mobileNumber = worker.getMobileNumber();
+        this.id = worker.getId();
+        this.serviceCharge =  worker.getServiceCharge();
+        this.about = worker.getAbout();
+        this.gender = worker.getGender();
+        this.dateOfBirth = worker.getDateOfBirth();
+        this.isBlocked = worker.isBlocked();
+        this.isVerified = worker.isVerified();
+        this.createdAt = worker.getCreatedAt();
+        this.role = worker.getRole();
+        this.profileImageUrl = worker.getProfileImageUrl();
+        this.address =  new AddressDto(worker.getAddress());
+        if(worker.getWorks() != null)
+        this.works = worker.getWorks();
+    }
 }

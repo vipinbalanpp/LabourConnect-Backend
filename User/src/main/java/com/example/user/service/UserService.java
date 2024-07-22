@@ -3,7 +3,9 @@ import com.example.user.model.dto.AddressDto;
 import com.example.user.model.dto.request.EditWorkerRequestDto;
 import com.example.user.model.dto.request.UserRequestDto;
 import com.example.user.model.dto.request.WorkerRequestDto;
+import com.example.user.model.dto.response.UserResponse;
 import com.example.user.model.dto.response.UserResponseDto;
+import com.example.user.model.dto.response.WorkerResponse;
 import com.example.user.model.dto.response.WorkerResponseDto;
 import com.example.user.model.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,17 +24,15 @@ public interface UserService {
 
     User getUserByEmail(String email);
 
-    List<UserResponseDto> getAllUsers(int pageNumber,String searchInput,Boolean isBlocked);
+    UserResponse getAllUsers(int pageNumber, String searchInput, Boolean isBlocked);
 
-    void blockUser(String email);
+    Boolean blockUser(String email);
 
-    void unBlockUser(String email);
 
-    List<WorkerResponseDto> getAllWorkers(Integer pageNumber,String searchInput,Boolean isBlocked,Long serviceId,Integer pageSize);
+    WorkerResponse getAllWorkers(Integer pageNumber, String searchInput, Boolean isBlocked, Long serviceId, Integer pageSize);
 
-    void blockWorker(String email);
+    Boolean blockWorker(String email);
 
-    void unBlockWorker(String email);
 
     UserResponseDto addAddress(AddressDto addressDto, String email);
 
@@ -48,9 +48,7 @@ public interface UserService {
 
     UserResponseDto getUserDetailsById(Long id);
 
-    WorkerResponseDto getWorkerDetailsById(Long id);
+    WorkerResponseDto getWorkerDetailsByIdOrEmail(Long id,String email);
 
-    Integer getTotalPageNumbersOfUsers(String searchInput, Boolean isBlocked);
-
-    Integer getTotalPageNumbersOfWorkers(Long serviceId, String searchInput, Boolean isBlocked,Integer pageSize);
+    List<WorkerResponseDto> getTopRatedWorkers();
 }

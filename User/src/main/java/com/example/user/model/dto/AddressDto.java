@@ -1,5 +1,6 @@
 package com.example.user.model.dto;
 
+import com.example.user.model.entity.Address;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,4 +16,11 @@ public class AddressDto {
     private String city;
     private String state;
     private String pincode;
+    public AddressDto(Address address){
+        this.houseName = address.getHouseName();
+        this.street = address.getStreet();
+        this.city = address.getCity();
+        this.state = address.getState();
+        this.pincode = address.getPincode();
+    }
 }

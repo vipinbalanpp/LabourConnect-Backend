@@ -3,10 +3,11 @@ import com.example.user.client.AuthServiceClient;
 import com.example.user.excepation.UserNotFoundException;
 import com.example.user.model.dto.AddressDto;
 import com.example.user.model.dto.request.EditWorkerRequestDto;
-import com.example.user.model.dto.ServiceDto;
 import com.example.user.model.dto.request.UserRequestDto;
 import com.example.user.model.dto.request.WorkerRequestDto;
+import com.example.user.model.dto.response.UserResponse;
 import com.example.user.model.dto.response.UserResponseDto;
+import com.example.user.model.dto.response.WorkerResponse;
 import com.example.user.model.dto.response.WorkerResponseDto;
 import com.example.user.model.entity.*;
 import com.example.user.repository.AddressRepository;
@@ -15,7 +16,9 @@ import com.example.user.repository.UserRepository;
 import com.example.user.repository.WorkerRepository;
 import com.example.user.service.UserService;
 import com.example.user.service.util.JwtService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -26,8 +29,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,7 +47,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto createUser(UserRequestDto userRequest) {
        User user = new User();
-       log.info("user to be created --------->:" + userRequest.getFullName()+" -----------> " + userRequest.getEmail());
        user.setFullName(userRequest.getFullName());
        user.setEmail(userRequest.getEmail());
        user.setRole(Roles.USER);
@@ -54,40 +56,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public WorkerResponseDto createWorker(WorkerRequestDto workerRequest) {
-        log.info("worker request dto: "+ workerRequest);
-        Address address = new Address();
-        address.setHouseName(workerRequest.getHouseName());
-        address.setStreet(workerRequest.getStreet());
-        address.setCity(workerRequest.getCity());
-        address.setState(workerRequest.getState());
-        address.setPincode(workerRequest.getPincode());
-        Worker worker = new Worker();
-        worker.setAddress(addressRepository.save(address));
-        worker.setFullName(workerRequest.getFullname());
-        worker.setEmail(workerRequest.getEmail());
-        worker.setRole(Roles.WORKER);
-        worker.setMobileNumber(workerRequest.getMobileNumber());
-        worker.setDateOfBirth(workerRequest.getDateOfBirth());
-        worker.setProfileImageUrl(workerRequest.getProfileImageUrl());
-        worker.setGender(workerRequest.getGender());
-        Services service = servicesRepository.findByServiceName(workerRequest.getExpertiseIn());
-        worker.setService(service);
-        worker.setExperience(workerRequest.getExperience());
-        worker.setServiceCharge(workerRequest.getServiceCharge());
-        worker.setAbout(workerRequest.getAbout());
-        worker.setCreatedAt(LocalDateTime.now());
-        worker.setCreatedAt(LocalDateTime.now());
-        log.info("worker: "+worker);
+    @Transactional
+    public WorkerResponseDto createWorker(WorkerRequestDto workerRequestDto) {
+        Address address =  new Address(workerRequestDto.getHouseName(),workerRequestDto.getStreet(),workerRequestDto.getCity(),workerRequestDto.getState(),workerRequestDto.getPincode());
+        addressRepository.save(address);
+        log.info("address:{}",address);
+        System.out.println(workerRequestDto.getServiceCharge());
+        Worker worker = new Worker(workerRequestDto);
+        worker.setAddress(address);
+        if(!servicesRepository.existsById(workerRequestDto.getExpertiseIn())){
+            throw new RuntimeException("Something went wrong while creating worker");
+        }else {
+            Services service = servicesRepository.findById(workerRequestDto.getExpertiseIn()).orElseThrow();
+            worker.setService(service);
+        }
         Worker savedWorker = workerRepository.save(worker);
-        log.info("worker saves: " + savedWorker);
-        AddressDto addressDto = modelMapper.map(savedWorker.getAddress(),AddressDto.class);
+        log.info("savedWorker:{}",savedWorker);
        WorkerResponseDto workerResponse = modelMapper.map(savedWorker,WorkerResponseDto.class);
-       workerResponse.setAddress( addressDto);
+       log.info("worker response:{}",workerResponse);
        return workerResponse;
-
     }
-
     @Override
     public UserResponseDto getUserDetails(String email) {
          User user= userRepository.findByEmail(email);
@@ -107,140 +95,91 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponseDto> getAllUsers(int pageNumber,String searchInput,Boolean isBlocked) {
-        System.out.println(searchInput);
-        int pageSize = 8;
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+    public UserResponse getAllUsers(int pageNumber, String searchInput, Boolean isBlocked) {
+        Pageable pageable = PageRequest.of(pageNumber,8);
         Page<User> usersPage;
+        Long totalNumberOfUsers = null;
         if(searchInput != null && isBlocked !=null){
+            totalNumberOfUsers = isBlocked ?
+                    userRepository.countByRoleAndIsBlockedBySearch(Roles.USER, searchInput) :
+                    userRepository.countByRoleAndNotBlockedBySearch(Roles.USER, searchInput);
             usersPage = isBlocked ? userRepository.findByRoleAndIsBlockedBySearch(Roles.USER,searchInput,pageable):userRepository.findByRoleAndNotBlockedBySearch(Roles.USER, searchInput,pageable);
         }else if(searchInput == null && isBlocked != null){
             usersPage = isBlocked==true ? userRepository.findByRoleAndNotBlocked(Roles.USER,pageable) : userRepository.findByRoleAndIsBlocked(Roles.USER,pageable);
+            totalNumberOfUsers = isBlocked ?
+                    userRepository.countByRoleAndNotBlocked(Roles.USER) :
+                    userRepository.countByRoleAndIsBlocked(Roles.USER);
         }else if (searchInput != null && isBlocked == null){
+            totalNumberOfUsers = userRepository.countByRoleAndSearchInput(Roles.USER, searchInput);
             usersPage = userRepository.findByRoleAndSearchInput(Roles.USER,searchInput,pageable);
         }else {
             usersPage = userRepository.findByRole(Roles.USER, pageable);
         }
-        return usersPage.stream().map(user -> {
-            UserResponseDto userResponse = new UserResponseDto();
-            userResponse.setFullName(user.getFullName());
-            userResponse.setEmail(user.getEmail());
-            userResponse.setRole(user.getRole());
-            userResponse.setProfileImageUrl(user.getProfileImageUrl());
-            userResponse.setMobileNumber(user.getMobileNumber());
-            if (user.getAddress() != null)
-                userResponse.setAddress(modelMapper.map(user.getAddress(), AddressDto.class));
-            else
-                userResponse.setAddress(null);
-            userResponse.setBlocked(user.isBlocked());
-            userResponse.setCreatedAt(user.getCreatedAt());
-            return userResponse;
-        }).collect(Collectors.toList());
-    }
-    @Override
-    public Integer getTotalPageNumbersOfUsers(String searchInput, Boolean isBlocked) {
-        long response;
-        if (searchInput != null && isBlocked != null) {
-            response = isBlocked ?
-                    userRepository.countByRoleAndIsBlockedBySearch(Roles.USER, searchInput) :
-                    userRepository.countByRoleAndNotBlockedBySearch(Roles.USER, searchInput);
-        } else if (searchInput == null && isBlocked != null) {
-            response = isBlocked ?
-                    userRepository.countByRoleAndNotBlocked(Roles.USER) :
-                    userRepository.countByRoleAndIsBlocked(Roles.USER);
-        } else if (searchInput != null && isBlocked == null) {
-            response = userRepository.countByRoleAndSearchInput(Roles.USER, searchInput);
-        } else {
-            response = userRepository.countByRole(Roles.USER);
-        }
+        List<UserResponseDto> userResponseDtos = usersPage.stream().map(user ->  new UserResponseDto(user)).collect(Collectors.toList());
+        Integer totalNumberOfPages = (int) Math.ceil((double) totalNumberOfUsers / 8);
+        return new UserResponse(userResponseDtos,totalNumberOfPages);
 
-        int pageSize = 8;
-        return (int) Math.ceil((double) response / pageSize);
     }
 
-    @Override
-    public Integer getTotalPageNumbersOfWorkers(Long serviceId, String searchInput, Boolean isBlocked,Integer pageSize) {
-        Integer numberOfWorkers = workerRepository.countAllWorkers(serviceId,searchInput,isBlocked);
-        if(pageSize == null){
-            pageSize = 8;
-        }
-        return (int) Math.ceil((double) numberOfWorkers / pageSize);
-    }
+
 
     @Override
-    public void blockUser(String email) {
+    public Boolean blockUser(String email) {
         User user = userRepository.findByEmail(email);
-        user.setBlocked(true);
+        if(user.isBlocked()){
+            user.setBlocked(false);
+        }else {
+            user.setBlocked(true);
+        }
         boolean response = authServiceClient.blockUser(email);
-        log.info("Response from auth service when blocking--->" +response);
         userRepository.save(user);
-    }
+        return user.isBlocked() ?  false : true;
 
-    @Override
-    public void unBlockUser(String email) {
-        User user = userRepository.findByEmail(email);
-        user.setBlocked(false);
-        boolean response = authServiceClient.unBlockUser(email);
-        userRepository.save(user);
     }
-
     @Override
-    public List<WorkerResponseDto> getAllWorkers(Integer pageNumber,String searchInput,Boolean isBlocked,Long serviceId,Integer pageSize) {
+    public WorkerResponse getAllWorkers(Integer pageNumber, String searchInput, Boolean isBlocked, Long serviceId, Integer pageSize) {
         if(pageSize == null){
             pageSize=8;
         }
         Pageable pageable = PageRequest.of(pageNumber,pageSize);
         Page<Worker> workers= workerRepository.findAllWorkers(serviceId,searchInput,isBlocked,pageable);
-        List<WorkerResponseDto> workerResponses = new ArrayList<>();
-        for(Worker worker : workers){
-            WorkerResponseDto workerResponse = new WorkerResponseDto();
-            workerResponse.setFullName(worker.getFullName());
-            workerResponse.setEmail(worker.getEmail());
-           workerResponse.setService(modelMapper.map(worker.getService(), ServiceDto.class));
-            workerResponse.setExperience(worker.getExperience());
-            workerResponse.setMobileNumber(worker.getMobileNumber());
-            workerResponse.setId(worker.getId());
-            workerResponse.setServiceCharge(worker.getServiceCharge());
-            workerResponse.setAbout(worker.getAbout());
-            workerResponse.setGender(worker.getGender());
-            workerResponse.setDateOfBirth(worker.getDateOfBirth());
-            workerResponse.setBlocked(worker.isBlocked());
-            workerResponse.setVerified(worker.isVerified());
-            workerResponse.setCreatedAt(worker.getCreatedAt());
-            workerResponse.setRole(worker.getRole());
-            workerResponse.setProfileImageUrl(worker.getProfileImageUrl());
-            AddressDto addressDto = modelMapper.map(worker.getAddress(),AddressDto.class);
-            workerResponse.setAddress(addressDto);
-            workerResponse.setWorks(worker.getWorks());
-            workerResponses.add(workerResponse);
-        }
-        return workerResponses;
+        Integer totalNumberOfWorkers = workerRepository.countAllWorkers(serviceId,searchInput,isBlocked);
+        List<WorkerResponseDto> workerResponses = workers.stream().map(worker  -> new WorkerResponseDto(worker)).toList();
+        System.out.println("totalworkers---:"+totalNumberOfWorkers);
+        System.out.println("pageSize  :  " +pageSize);
+        Integer totalNumberOfPages = (int) Math.ceil((double) totalNumberOfWorkers / pageSize);
+        WorkerResponse workerResponse = new WorkerResponse(workerResponses,totalNumberOfPages);
+        return workerResponse;
+    }
+    @Override
+    public List<WorkerResponseDto> getTopRatedWorkers() {
+//        try {
+            Pageable pageable = PageRequest.of(0,8);
+            Page<Worker> workers = workerRepository.findAll(pageable);
+            List<WorkerResponseDto> workerResponses = workers.stream().map(worker  -> new WorkerResponseDto(worker)).toList();
+            return workerResponses;
+//        }catch (Exception e){
+//            throw new RuntimeException("Something went wrong");
+//        }
     }
 
     @Override
-    public void blockWorker(String email) {
+    public Boolean blockWorker(String email) {
         Worker worker = workerRepository.findByEmail(email);
-        worker.setBlocked(true);
+        if(worker.isBlocked()){
+            worker.setBlocked(false);
+        }else {
+            worker.setBlocked(true);
+        }
         boolean response = authServiceClient.blockUser(email);
         workerRepository.save(worker);
+        return worker.isBlocked()?false:true;
     }
 
-    @Override
-    public void unBlockWorker(String email) {
-        Worker worker = workerRepository.findByEmail(email);
-        worker.setBlocked(false);
-        boolean response = authServiceClient.unBlockUser(email);
-        workerRepository.save(worker);
-    }
 
     @Override
     public UserResponseDto addAddress(AddressDto addressDto, String email) {
-        Address address = new Address();
-        address.setHouseName(addressDto.getHouseName());
-        address.setStreet(addressDto.getStreet());
-        address.setCity(addressDto.getCity());
-        address.setState(addressDto.getState());
-        address.setPincode(addressDto.getPincode());
+        Address address = new Address(addressDto);
         address = addressRepository.save(address);
         User user = userRepository.findByEmail(email);
         user.setAddress(address);
@@ -260,8 +199,6 @@ public class UserServiceImpl implements UserService {
         worker.setServiceCharge(editWorkerDto.getServiceCharge());
         worker.setAbout(editWorkerDto.getAbout());
         workerRepository.save(worker);
-
-
     }
 
     @Override
@@ -339,8 +276,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public WorkerResponseDto getWorkerDetailsById(Long id) {
-        return modelMapper.map(workerRepository.findById(id),WorkerResponseDto.class);
+    public WorkerResponseDto getWorkerDetailsByIdOrEmail(Long id,String email) {
+        System.out.println(email);
+        if(id != null) return modelMapper.map(workerRepository.findById(id),WorkerResponseDto.class);
+        if(email != null) return modelMapper.map(workerRepository.findByEmail(email),WorkerResponseDto.class);
+        else return null;
     }
 
 

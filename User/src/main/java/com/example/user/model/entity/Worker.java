@@ -1,6 +1,7 @@
 package com.example.user.model.entity;
 
 
+import com.example.user.model.dto.request.WorkerRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -38,4 +39,20 @@ public class Worker {
     private boolean isBlocked;
     private boolean isVerified;
     private LocalDateTime createdAt;
+    public Worker(WorkerRequestDto workerRequestDto) {
+        this.fullName = workerRequestDto.getFullname();
+        this.email = workerRequestDto.getEmail();
+        this.experience = workerRequestDto.getExperience();
+        this.mobileNumber = workerRequestDto.getMobileNumber();
+        this.about = workerRequestDto.getAbout();
+        this.serviceCharge = workerRequestDto.getServiceCharge();
+        this.gender = workerRequestDto.getGender();
+        this.dateOfBirth = workerRequestDto.getDateOfBirth();
+        this.role = Roles.WORKER;
+        this.profileImageUrl = workerRequestDto.getProfileImageUrl();
+        this.isBlocked = false;
+        this.isVerified = false;
+        this.createdAt = LocalDateTime.now();
+        this.works = null;
+    }
 }

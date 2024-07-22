@@ -1,5 +1,6 @@
 package com.example.user.repository;
 
+import com.example.user.model.dto.response.WorkerResponseDto;
 import com.example.user.model.entity.Services;
 import com.example.user.model.entity.Worker;
 import feign.Param;
@@ -33,4 +34,5 @@ public interface WorkerRepository extends JpaRepository<Worker,Long> {
             @Param("searchInput") String searchInput,
             @Param("isBlocked") Boolean isBlocked
     );
+
 }

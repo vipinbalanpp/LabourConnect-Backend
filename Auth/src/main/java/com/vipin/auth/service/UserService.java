@@ -27,4 +27,6 @@ public interface UserService {
     boolean unBlockUser(String email);
 
     void changePassword(ChangePasswordDto changePasswordDto, HttpServletRequest request);
+
+    String googleAuthentication(UserRequestDto userRequestDto,HttpServletResponse response) throws Exception;
 }

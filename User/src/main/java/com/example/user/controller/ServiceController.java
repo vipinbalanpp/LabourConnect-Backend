@@ -1,13 +1,13 @@
 package com.example.user.controller;
 
 import com.example.user.model.dto.ServiceDto;
+import com.example.user.model.dto.response.ServiceResponse;
 import com.example.user.service.ServicesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -18,23 +18,25 @@ public class ServiceController {
     private  final ServicesService servicesService;
 
     @GetMapping("/get-all-services")
-    public ResponseEntity<List<ServiceDto>> getAllServicesByPageNumber(@RequestParam int pageNumber){
+    public ResponseEntity<ServiceResponse> getAllServicesByPageNumber(@RequestParam Integer pageNumber,
+                                                                      @RequestParam(required = false)Integer pageSize,
+                                                                      @RequestParam(required = false) String searchInput){
         try {
-            List<ServiceDto> services = servicesService.getAllServices(pageNumber);
-            return new ResponseEntity<>(services, HttpStatus.OK);
+            ServiceResponse response = servicesService.getAllServices(pageNumber,pageSize,searchInput);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }catch (RuntimeException e){
             throw  new RuntimeException("Something went wrong");
         }
     }
-    @GetMapping("/get-services")
+    @GetMapping("/serviceDetail")
+    public ResponseEntity<ServiceDto> getServiceDetail(@RequestParam String serviceName){
+        return new ResponseEntity<>( servicesService.getSErviceDetailByName(serviceName),HttpStatus.OK);
+    }
+    @GetMapping("/services")
     public ResponseEntity<List<ServiceDto>> getAllServices(){
-        try {
-            List<ServiceDto> services = servicesService.getAllServices();
-            return new ResponseEntity<>(services, HttpStatus.OK);
-        }catch (RuntimeException e){
-            throw  new RuntimeException("Something went wrong");
-        }
+        return new ResponseEntity<>(servicesService.getAllServices(),HttpStatus.OK);
     }
+
     @PostMapping("/create-service")
     public ResponseEntity<ServiceDto> createService (@RequestBody ServiceDto serviceDto){
             ServiceDto service =  servicesService.createService(serviceDto);

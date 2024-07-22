@@ -7,6 +7,7 @@ import io.jsonwebtoken.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -23,25 +24,19 @@ public class JwtService {
         this.userRepository = userRepository;
     }
 
-
-    private String jwtSecret = "2D4A614E645267556B58703273357638792F423F4428472B4B6250655368566D";
+    @Value("${jwt_secret}")
+    private String jwtSecret ;
     private Long jwtExpiration= 30 * 24 * 60 * 60 * 1000L;
 
-    public String generateToken(Authentication authentication) throws Exception {
-        String email = authentication.getName();
-        log.info("email : {}",email);
+    public String generateToken(String email) throws Exception {
+
         Date currentDate = new Date();
         try {
             User user = userRepository.findByEmail(email);
             Date expirationTime = new Date(currentDate.getTime() + jwtExpiration);
-            List<String> roles = authentication.getAuthorities()
-                    .stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .toList();
-           log.info("roles",roles.get(0));
             return Jwts.builder()
                     .setSubject(user.getFullName())
-                    .claim("role", roles.get(0))
+                    .claim("role", user.getRole())
                     .claim("userId",user.getUserId())
                     .claim("email",user.getEmail())
                     .setIssuedAt(currentDate)
@@ -111,5 +106,17 @@ public class JwtService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public String getJWTFromRequest(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("jwt")) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

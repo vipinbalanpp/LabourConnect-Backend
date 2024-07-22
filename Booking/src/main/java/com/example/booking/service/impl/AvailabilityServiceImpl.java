@@ -20,7 +20,6 @@ public class AvailabilityServiceImpl implements AvailabilityService
     private final AvailabilityRepository availabilityRepository;
     @Override
     public AvailabilityDateResponse getAvailabilityDates(Long workerId) {
-        System.out.println(workerId);
         List<Booking> bookings = bookingRepository.findByWorkerId(workerId);
         List<Date> bookingDates = new ArrayList<>();
         bookings.forEach(booking -> bookingDates.add(booking.getWorkDate()));
@@ -28,7 +27,6 @@ public class AvailabilityServiceImpl implements AvailabilityService
         AvailabilityDateResponse availabilityDateResponse = new AvailabilityDateResponse();
         availabilityDateResponse.setBookedDates(bookingDates);
         if(availability != null){
-            System.out.println(availability.getNotAvailableDates().size());
             availabilityDateResponse.setUnavailableDates(availability.getNotAvailableDates());
         }
         return availabilityDateResponse;
@@ -39,7 +37,7 @@ public class AvailabilityServiceImpl implements AvailabilityService
         Availability availability = availabilityRepository.existsByWorkerId(workerId) ?
                 availabilityRepository.findByWorkerId(workerId) :
                 new Availability();
-        availability.setNotAvailableDates(dates);
+        availability.addNotAvailableDates(dates);
         availability.setWorkerId(workerId);
         availabilityRepository.save(availability);
         List<Booking> bookings = bookingRepository.findByWorkerId(workerId);
@@ -47,6 +45,8 @@ public class AvailabilityServiceImpl implements AvailabilityService
         availabilityDateResponse.setBookedDates(bookings.stream().map(booking ->  booking.getWorkDate()).collect(Collectors.toList()));
         if(availability!=null)
             availabilityDateResponse.setUnavailableDates(availability.getNotAvailableDates());
+        System.out.println(availabilityDateResponse.getBookedDates());
+        System.out.println(availabilityDateResponse.getUnavailableDates());
         return availabilityDateResponse;
     }
 }

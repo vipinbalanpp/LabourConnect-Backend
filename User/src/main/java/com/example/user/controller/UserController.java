@@ -3,7 +3,9 @@ import com.example.user.model.dto.AddressDto;
 import com.example.user.model.dto.request.EditWorkerRequestDto;
 import com.example.user.model.dto.request.UserRequestDto;
 import com.example.user.model.dto.request.WorkerRequestDto;
+import com.example.user.model.dto.response.UserResponse;
 import com.example.user.model.dto.response.UserResponseDto;
+import com.example.user.model.dto.response.WorkerResponse;
 import com.example.user.model.dto.response.WorkerResponseDto;
 import com.example.user.service.ServicesService;
 import com.example.user.service.UserService;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -23,11 +26,9 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final JwtService jwtService;
-    private final ServicesService servicesService;
     @PostMapping("/createUser")
     public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRequestDto userRequest){
     try {
-        System.out.println("fullname  :" + userRequest.getFullName()+"          Email:" + userRequest.getEmail());
         return new ResponseEntity<>( userService.createUser(userRequest), HttpStatus.CREATED);
 
     } catch (RuntimeException e){
@@ -44,6 +45,7 @@ public class UserController {
           throw  new RuntimeException("Something went wrong");
       }
     }
+
     @GetMapping("/userDetails")
     public ResponseEntity<?> getUserDetails(HttpServletRequest request){
         try {
@@ -67,98 +69,62 @@ public class UserController {
         return new ResponseEntity<>(userResponseDto,HttpStatus.OK);
     }
     @GetMapping("/workerDetails")
-    public ResponseEntity<WorkerResponseDto> getWorkerDetailsById(@RequestParam Long id){
-        WorkerResponseDto workerResponseDto = userService.getWorkerDetailsById(id);
-        return new ResponseEntity<>(workerResponseDto,HttpStatus.OK);
+    public ResponseEntity<WorkerResponseDto> getWorkerDetailsByOrEmail(@RequestParam (required = false) Long id,
+                                                                  @RequestParam(required = false) String email){
+        return new ResponseEntity<>(   userService.getWorkerDetailsByIdOrEmail(id,email),HttpStatus.OK);
     }
 
     @GetMapping("/getAllUsers")
-    public ResponseEntity<List<UserResponseDto>> getAllUsers (@RequestParam int pageNumber,
+    public ResponseEntity<UserResponse> getAllUsers (@RequestParam int pageNumber,
                                                               @RequestParam(required = false) String searchInput,
                                                               @RequestParam(required = false)Boolean isBlocked){
         try {
             System.out.println("In get All users");
-            List<UserResponseDto> users = userService.getAllUsers(pageNumber,searchInput,isBlocked);
-            return new ResponseEntity<>(users,HttpStatus.OK);
+            UserResponse response = userService.getAllUsers(pageNumber,searchInput,isBlocked);
+            return new ResponseEntity<>(response,HttpStatus.OK);
         }catch (RuntimeException e){
             throw  new RuntimeException("Something went wrong");
-        }
-    }
-    @GetMapping("/getTotalPageNumbersOfUsers")
-    public ResponseEntity<Integer> getTotalPageNumbersOfUsers(
-            @RequestParam(required = false) String searchInput,
-            @RequestParam(required = false) Boolean isBlocked) {
-        try {
-            int totalPages = userService.getTotalPageNumbersOfUsers(searchInput, isBlocked);
-            return new ResponseEntity<>(totalPages, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Something went wrong", e);
         }
     }
     @GetMapping("/getAllWorkers")
-    public ResponseEntity<List<WorkerResponseDto>> getAllWorkers (@RequestParam Integer pageNumber,
-                                                                  @RequestParam(required = false) Integer pageSize,
-                                                                  @RequestParam(required = false) Long serviceId,
-                                                                  @RequestParam(required = false) String searchInput,
-                                                                  @RequestParam(required = false) Boolean isBlocked){
+    public ResponseEntity<WorkerResponse> getAllWorkers (@RequestParam Integer pageNumber,
+                                                         @RequestParam(required = false) Integer pageSize,
+                                                         @RequestParam(required = false) Long serviceId,
+                                                         @RequestParam(required = false) String searchInput,
+                                                         @RequestParam(required = false) Boolean isBlocked){
         try {
-            List<WorkerResponseDto> users = userService.getAllWorkers(pageNumber,searchInput,isBlocked,serviceId,pageSize);
-            return new ResponseEntity<>(users,HttpStatus.OK);
+            WorkerResponse workerResponse = userService.getAllWorkers(pageNumber,searchInput,isBlocked,serviceId,pageSize);
+            return new ResponseEntity<>(workerResponse,HttpStatus.OK);
         }catch (RuntimeException e){
             throw  new RuntimeException("Something went wrong");
         }
     }
-    @GetMapping("/getTotalPageNumbersOfWorkers")
-    public ResponseEntity<Integer> getTotalPageNumbersOfWorkers(
-            @RequestParam(required = false) Long serviceId,
-            @RequestParam(required = false) Integer pageSize,
-            @RequestParam(required = false) String searchInput,
-            @RequestParam(required = false) Boolean isBlocked) {
-        try {
-            int totalPages = userService.getTotalPageNumbersOfWorkers(serviceId,searchInput, isBlocked,pageSize);
-            return new ResponseEntity<>(totalPages, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Something went wrong", e);
-        }
+    @GetMapping("/getTopRatedWorkers")
+    public ResponseEntity<List<WorkerResponseDto>> getTopRatedWorkers(){
+//        try {
+            return new ResponseEntity<>(userService.getTopRatedWorkers(),HttpStatus.OK);
+//        }catch (Exception e){
+//            throw new RuntimeException("something went wrong");
+//        }
     }
-    @PatchMapping("/blockUser")
-    public ResponseEntity<String> blockUser(@RequestParam String email){
+    @PutMapping("/blockUser")
+    public ResponseEntity<Boolean> blockOrUnBlockUser(@RequestParam String email){
         try {
-            userService.blockUser(email);
-            return  new ResponseEntity<>("User blocked successfully",HttpStatus.OK);
+           Boolean response =  userService.blockUser(email);
+            return  new ResponseEntity<>(response,HttpStatus.OK);
         }catch (RuntimeException e){
             throw  new RuntimeException("Something went wrong");
         }
 
     }
-    @PatchMapping("/unBlockUser")
-    public ResponseEntity<String> unBlockUser(@RequestParam String email){
+    @PutMapping("/blockWorker")
+    public ResponseEntity<Boolean> blockWorker(@RequestParam String email){
         try {
-            userService.unBlockUser(email);
-            return  new ResponseEntity<>("User unblocked successfully",HttpStatus.OK);
+            Boolean response = userService.blockWorker(email);
+            return  new ResponseEntity<>(response,HttpStatus.OK);
         }catch (RuntimeException e){
             throw  new RuntimeException("Something went wrong");
         }
-
-    }
-    @PatchMapping("/blockWorker")
-    public ResponseEntity<String> blockWorker(@RequestParam String email){
-        try {
-            userService.blockWorker(email);
-            return  new ResponseEntity<>("Worker blocked successfully",HttpStatus.OK);
-        }catch (RuntimeException e){
-            throw  new RuntimeException("Something went wrong");
-        }
-    }
-    @PatchMapping("/unBlockWorker")
-    public ResponseEntity<String> unBlockWorker(@RequestParam String email){
-        try {
-            userService.unBlockWorker(email);
-            return  new ResponseEntity<>("Worker unblocked successfully",HttpStatus.OK);
-        }catch (RuntimeException e){
-            throw  new RuntimeException("Something went wrong");
-        }
-
     }
 
 
@@ -175,7 +141,7 @@ public class UserController {
         }
     }
     @PutMapping("/edit-profileImage")
-    public ResponseEntity<String> editWorker (@RequestParam String profileImageUrl,
+    public ResponseEntity<String> editWorkerProfileImage (@RequestParam String profileImageUrl,
                                               HttpServletRequest request){
         try {
             String token = jwtService.getTokenFromRequest(request);

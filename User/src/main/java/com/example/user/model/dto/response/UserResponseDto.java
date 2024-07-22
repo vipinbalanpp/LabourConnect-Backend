@@ -3,6 +3,7 @@ package com.example.user.model.dto.response;
 import com.example.user.model.dto.AddressDto;
 import com.example.user.model.entity.Address;
 import com.example.user.model.entity.Roles;
+import com.example.user.model.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,4 +25,15 @@ public class UserResponseDto {
     private AddressDto address;
     private LocalDateTime createdAt;
     private boolean isBlocked;
+    public UserResponseDto (User user){
+        this.id = user.getId();
+        this.fullName = user.getFullName();;
+        this.email = user.getEmail();
+        this.profileImageUrl = user.getProfileImageUrl();
+        this.role = user.getRole();
+        this.mobileNumber = user.getMobileNumber();
+        this.createdAt = user.getCreatedAt();
+        this.isBlocked = user.isBlocked();
+        if(user.getAddress() != null) this.address = new AddressDto(user.getAddress());
+    }
 }

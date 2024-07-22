@@ -1,6 +1,7 @@
 package com.example.user.model.dto;
 
 import com.example.user.model.dto.response.WorkerResponseDto;
+import com.example.user.model.entity.Services;
 import com.example.user.model.entity.Worker;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,5 +19,12 @@ public class ServiceDto {
     private String serviceName;
     private String logo;
     private String description;
-    List<Worker> workers;
+
+    public ServiceDto(Services services){
+        this.setServiceId(services.getServiceId());
+        this.setServiceName(services.getServiceName());
+        this.setLogo(services.getLogo());
+        this.setDescription(services.getDescription());
+
+    }
 }

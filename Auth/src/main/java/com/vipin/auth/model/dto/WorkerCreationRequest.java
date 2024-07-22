@@ -20,7 +20,7 @@ public class WorkerCreationRequest {
     private LocalDate dateOfBirth;
     private String profileImageUrl;
     private String gender;
-    private String expertiseIn;
+    private Long expertiseIn;
     private Long experience;
     private Double serviceCharge;
     private String houseName;

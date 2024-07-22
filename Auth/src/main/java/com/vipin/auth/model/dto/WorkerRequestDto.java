@@ -21,7 +21,7 @@ public class WorkerRequestDto {
     private String profileImageUrl;
     private String gender;
     private String password;
-    private String expertiseIn;
+    private Long expertiseIn;
     private Long experience;
     private Double serviceCharge;
     private String houseName;

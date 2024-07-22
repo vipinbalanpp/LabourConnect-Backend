@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Date;
 import java.util.List;
-
 @RestController
 @RequestMapping("/booking/api/v1")
 @RequiredArgsConstructor
@@ -23,7 +21,6 @@ public class AvailabilityController {
     @PutMapping("/set-availability-dates")
     public ResponseEntity<AvailabilityDateResponse> setAvailabilityDates(@RequestParam long workerId,
                                                                          @RequestBody List<Date> dates){
-        AvailabilityDateResponse availabilityDateResponse= availabilityService.setAvailableDates(workerId,dates);
-        return new ResponseEntity<>(availabilityDateResponse, HttpStatus.OK);
+        return new ResponseEntity<>( availabilityService.setAvailableDates(workerId,dates), HttpStatus.OK);
     }
 }
