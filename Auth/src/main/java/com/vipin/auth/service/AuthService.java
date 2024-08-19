@@ -7,7 +7,7 @@ import com.vipin.auth.model.response.WorkerResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public interface UserService {
+public interface AuthService {
     UserResponseDto registerUser(UserRequestDto user, HttpServletResponse response) throws Exception;
 
 

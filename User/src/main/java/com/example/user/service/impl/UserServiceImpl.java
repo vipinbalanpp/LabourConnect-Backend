@@ -1,7 +1,9 @@
 package com.example.user.service.impl;
 import com.example.user.client.AuthServiceClient;
+import com.example.user.client.ServiceCatalogueServiceClient;
 import com.example.user.excepation.UserNotFoundException;
 import com.example.user.model.dto.AddressDto;
+import com.example.user.model.dto.ServiceDto;
 import com.example.user.model.dto.request.EditWorkerRequestDto;
 import com.example.user.model.dto.request.UserRequestDto;
 import com.example.user.model.dto.request.WorkerRequestDto;
@@ -11,12 +13,10 @@ import com.example.user.model.dto.response.WorkerResponse;
 import com.example.user.model.dto.response.WorkerResponseDto;
 import com.example.user.model.entity.*;
 import com.example.user.repository.AddressRepository;
-import com.example.user.repository.ServicesRepository;
 import com.example.user.repository.UserRepository;
 import com.example.user.repository.WorkerRepository;
 import com.example.user.service.UserService;
 import com.example.user.service.util.JwtService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +25,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,14 +43,10 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final ModelMapper modelMapper;
     private final AuthServiceClient authServiceClient;
-    private final ServicesRepository servicesRepository;
+    private final ServiceCatalogueServiceClient serviceCatalogueServiceClient;
     @Override
     public UserResponseDto createUser(UserRequestDto userRequest) {
-       User user = new User();
-       user.setFullName(userRequest.getFullName());
-       user.setEmail(userRequest.getEmail());
-       user.setRole(Roles.USER);
-       user.setCreatedAt(LocalDateTime.now());
+       User user = new User(userRequest);
        UserResponseDto userResponse = modelMapper.map(userRepository.save(user),UserResponseDto.class);
        return userResponse;
     }
@@ -58,22 +54,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public WorkerResponseDto createWorker(WorkerRequestDto workerRequestDto) {
-        Address address =  new Address(workerRequestDto.getHouseName(),workerRequestDto.getStreet(),workerRequestDto.getCity(),workerRequestDto.getState(),workerRequestDto.getPincode());
+        Address address =  new Address(workerRequestDto.getHouseName(),workerRequestDto.getStreet(),workerRequestDto.getCity(),workerRequestDto.getState(),workerRequestDto.getPinCode());
         addressRepository.save(address);
-        log.info("address:{}",address);
-        System.out.println(workerRequestDto.getServiceCharge());
         Worker worker = new Worker(workerRequestDto);
         worker.setAddress(address);
-        if(!servicesRepository.existsById(workerRequestDto.getExpertiseIn())){
-            throw new RuntimeException("Something went wrong while creating worker");
-        }else {
-            Services service = servicesRepository.findById(workerRequestDto.getExpertiseIn()).orElseThrow();
-            worker.setService(service);
-        }
+        worker.setServiceId(workerRequestDto.getServiceId());
         Worker savedWorker = workerRepository.save(worker);
-        log.info("savedWorker:{}",savedWorker);
+        ServiceDto serviceDto = serviceCatalogueServiceClient.getServiceDetail(savedWorker.getServiceId());
        WorkerResponseDto workerResponse = modelMapper.map(savedWorker,WorkerResponseDto.class);
-       log.info("worker response:{}",workerResponse);
+       workerResponse.setService(serviceDto);
        return workerResponse;
     }
     @Override
@@ -86,7 +75,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public WorkerResponseDto getWorkerDetails(String email) {
         Worker worker= workerRepository.findByEmail(email);
-        return modelMapper.map(worker,WorkerResponseDto.class);
+        WorkerResponseDto workerResponseDto =  modelMapper.map(worker,WorkerResponseDto.class);
+        ServiceDto serviceDto = serviceCatalogueServiceClient.getServiceDetail(worker.getServiceId());
+        if (serviceDto != null) {
+            workerResponseDto.setService(serviceDto);
+        } else {
+            throw new RuntimeException("Something went wrong");
+        }
+       return workerResponseDto;
     }
 
     @Override
@@ -137,30 +133,52 @@ public class UserServiceImpl implements UserService {
 
     }
     @Override
-    public WorkerResponse getAllWorkers(Integer pageNumber, String searchInput, Boolean isBlocked, Long serviceId, Integer pageSize) {
-        if(pageSize == null){
-            pageSize=8;
+    public WorkerResponse getAllWorkers(Integer pageNumber, String searchInput, Boolean isBlocked, Long serviceId, Integer pageSize, String priceSort,String experienceSort) {
+        if (pageSize == null) {
+            pageSize = 8;
         }
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
-        Page<Worker> workers= workerRepository.findAllWorkers(serviceId,searchInput,isBlocked,pageable);
-        Integer totalNumberOfWorkers = workerRepository.countAllWorkers(serviceId,searchInput,isBlocked);
-        List<WorkerResponseDto> workerResponses = workers.stream().map(worker  -> new WorkerResponseDto(worker)).toList();
-        System.out.println("totalworkers---:"+totalNumberOfWorkers);
-        System.out.println("pageSize  :  " +pageSize);
-        Integer totalNumberOfPages = (int) Math.ceil((double) totalNumberOfWorkers / pageSize);
-        WorkerResponse workerResponse = new WorkerResponse(workerResponses,totalNumberOfPages);
+        Sort sort = Sort.unsorted();
+        if (priceSort != null) {
+            sort = Sort.by("serviceCharge");
+            if (priceSort.equalsIgnoreCase("lowToHigh")) {
+                sort = sort.ascending();
+            } else if (priceSort.equalsIgnoreCase("highToLow")) {
+                sort = sort.descending();
+            }
+        }
+        if (experienceSort != null) {
+            Sort experienceSorting = Sort.by("experience");
+            if (experienceSort.equalsIgnoreCase("lowToHigh")) {
+                sort = sort.ascending();
+            } else if (experienceSort.equalsIgnoreCase("highToLow")) {
+                sort = sort.descending();
+            }
+            sort = sort.and(experienceSorting);
+        }
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+        Page<Worker> workers = workerRepository.findAllWorkers(serviceId, searchInput, isBlocked, pageable);
+        List<WorkerResponseDto> workerResponses = workers.stream().map(worker -> {
+            WorkerResponseDto workerResponseDto = new WorkerResponseDto(worker);
+            ServiceDto serviceDto = serviceCatalogueServiceClient.getServiceDetail(worker.getServiceId());
+            workerResponseDto.setService(serviceDto);
+            return workerResponseDto;
+        }).toList();
+        WorkerResponse workerResponse = new WorkerResponse(workerResponses, workers.getTotalPages());
         return workerResponse;
     }
+
     @Override
     public List<WorkerResponseDto> getTopRatedWorkers() {
-//        try {
-            Pageable pageable = PageRequest.of(0,8);
+            Pageable pageable = PageRequest.of(0,6);
             Page<Worker> workers = workerRepository.findAll(pageable);
-            List<WorkerResponseDto> workerResponses = workers.stream().map(worker  -> new WorkerResponseDto(worker)).toList();
+            List<WorkerResponseDto> workerResponses = workers.stream().map(worker  -> {
+               WorkerResponseDto workerResponseDto = new WorkerResponseDto(worker);
+               ServiceDto serviceDto  = serviceCatalogueServiceClient.getServiceDetail(worker.getServiceId());
+               workerResponseDto.setService(serviceDto);
+              return   workerResponseDto;
+            }).toList();
             return workerResponses;
-//        }catch (Exception e){
-//            throw new RuntimeException("Something went wrong");
-//        }
     }
 
     @Override
@@ -193,8 +211,6 @@ public class UserServiceImpl implements UserService {
         worker.setFullName(editWorkerDto.getFullName());
         worker.setMobileNumber(editWorkerDto.getMobileNumber());
         worker.setDateOfBirth(LocalDate.parse(editWorkerDto.getDateOfBirth()));
-        Services service = servicesRepository.findByServiceName(editWorkerDto.getExpertiseIn());
-        worker.setService(service);
         worker.setExperience(editWorkerDto.getExperience());
         worker.setServiceCharge(editWorkerDto.getServiceCharge());
         worker.setAbout(editWorkerDto.getAbout());
@@ -230,7 +246,7 @@ public class UserServiceImpl implements UserService {
         address.setStreet(addressDto.getStreet());
         address.setCity(addressDto.getCity());
         address.setState(addressDto.getState());
-        address.setPincode(addressDto.getPincode());
+        address.setPinCode(addressDto.getPinCode());
         address = addressRepository.save(address);
         if(role.equals("USER")){
             User user = userRepository.findByEmail(email);
@@ -262,7 +278,7 @@ public class UserServiceImpl implements UserService {
         address.setStreet(addressDto.getStreet());
         address.setCity(addressDto.getCity());
         address.setState(addressDto.getState());
-        address.setPincode(addressDto.getPincode());
+        address.setPinCode(addressDto.getPinCode());
         address = addressRepository.save(address);
         user.setAddress(address);
         userRepository.save(user);
@@ -277,10 +293,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public WorkerResponseDto getWorkerDetailsByIdOrEmail(Long id,String email) {
-        System.out.println(email);
-        if(id != null) return modelMapper.map(workerRepository.findById(id),WorkerResponseDto.class);
-        if(email != null) return modelMapper.map(workerRepository.findByEmail(email),WorkerResponseDto.class);
-        else return null;
+        Worker worker ;
+        if(id != null) {
+            worker =  workerRepository.findById(id).orElseThrow();
+        }
+       else if(email != null) {
+            worker =  workerRepository.findByEmail(email);
+        }else  throw  new RuntimeException("Something went wrong");
+        WorkerResponseDto workerResponseDto = new WorkerResponseDto(worker);
+        ServiceDto serviceDto = serviceCatalogueServiceClient.getServiceDetail(worker.getServiceId());
+        workerResponseDto.setService(serviceDto);
+        return workerResponseDto;
     }
 
 

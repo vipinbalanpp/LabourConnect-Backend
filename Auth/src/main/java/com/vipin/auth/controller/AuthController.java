@@ -3,7 +3,7 @@ import com.vipin.auth.model.dto.*;
 import com.vipin.auth.model.response.LoginResponse;
 import com.vipin.auth.model.response.UserResponse;
 import com.vipin.auth.model.response.WorkerResponseDto;
-import com.vipin.auth.service.UserService;
+import com.vipin.auth.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,10 +19,10 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class AuthController {
 
-    private UserService userService;
+    private AuthService userService;
     private RestTemplate restTemplate;
 
-    public AuthController(UserService userService, RestTemplate restTemplate){
+    public AuthController(AuthService userService, RestTemplate restTemplate){
         this.restTemplate = restTemplate;
         this.userService = userService;
     }
@@ -41,14 +41,12 @@ public class AuthController {
     @PostMapping("/user/register")
     public ResponseEntity<UserResponseDto> registerUser (@RequestBody UserRequestDto user,
                                                          HttpServletResponse response){
-        UserResponseDto userResponseDto = null;
         try {
-            userResponseDto= userService.registerUser(user,response);
+            UserResponseDto  userResponseDto= userService.registerUser(user,response);
+            return new ResponseEntity<>(userResponseDto,HttpStatus.CREATED);
         }catch (Exception e){
-            return  new ResponseEntity<>(userResponseDto,HttpStatus.FORBIDDEN);
+            throw new RuntimeException("Something went wrong. Please try again");
         }
-
-       return new ResponseEntity<>(userResponseDto,HttpStatus.CREATED);
     }
     @GetMapping("/emailExists/{email}")
     public Boolean emailExists(@PathVariable String email){
@@ -57,12 +55,12 @@ public class AuthController {
 
     @PostMapping("/worker/register")
     public ResponseEntity<WorkerResponseDto> registerWorker (@RequestBody WorkerRequestDto workerRequestDto, HttpServletResponse response) throws Exception {
-//        try {
+        try {
             WorkerResponseDto  workerResponse = userService.registerWorker(workerRequestDto,response);
             return new ResponseEntity<>(workerResponse,HttpStatus.CREATED);
-//        }catch (Exception e){
-//            throw new RuntimeException("Something went wrong");
-//        }
+        }catch (Exception e){
+            throw new RuntimeException("Something went wrong");
+        }
 
     }
 

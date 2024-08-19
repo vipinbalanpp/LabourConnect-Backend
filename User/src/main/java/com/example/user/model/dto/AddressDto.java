@@ -15,12 +15,12 @@ public class AddressDto {
     private String street;
     private String city;
     private String state;
-    private String pincode;
+    private Long pinCode;
     public AddressDto(Address address){
         this.houseName = address.getHouseName();
         this.street = address.getStreet();
         this.city = address.getCity();
         this.state = address.getState();
-        this.pincode = address.getPincode();
+        this.pinCode = address.getPinCode();
     }
 }

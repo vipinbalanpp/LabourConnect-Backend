@@ -21,14 +21,14 @@ public class Address {
     private String street;
     private String city;
     private String state;
-    private String pincode;
+    private Long pinCode;
 
-    public Address(String houseName, String street, String city, String state, String pincode) {
+    public Address(String houseName, String street, String city, String state, Long pinCode) {
         this.houseName = houseName;
         this.street = street;
         this.city = city;
         this.state = state;
-        this.pincode = pincode;
+        this.pinCode = pinCode;
     }
 
     public Address(AddressDto addressDto) {
@@ -36,6 +36,6 @@ public class Address {
         this.street = addressDto.getStreet();
         this.city = addressDto.getCity();
         this.state = addressDto.getState();
-        this.pincode = addressDto.getPincode();
+        this.pinCode = addressDto.getPinCode();
     }
 }

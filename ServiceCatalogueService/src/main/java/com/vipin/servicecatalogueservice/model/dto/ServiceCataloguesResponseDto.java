@@ -1,6 +1,5 @@
-package com.example.user.model.dto.response;
+package com.vipin.servicecatalogueservice.model.dto;
 
-import com.example.user.model.dto.ServiceDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +11,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ServiceResponse {
-    private List<ServiceDto> services;
+public class ServiceCataloguesResponseDto {
+    private List<ServiceCatalogueDto> services;
     private Integer totalNumberOfPages;
 }

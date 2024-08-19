@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -13,6 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AvailabilityDateResponse {
-    private List<Date> bookedDates;
+    private List<LocalDate> bookedDates;
     private  List<Date> unavailableDates;
 }

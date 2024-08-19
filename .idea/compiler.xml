@@ -6,11 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Booking" />
         <module name="User" />
-        <module name="Notification" />
+        <module name="ServiceCatalogueService" />
         <module name="Gateway" />
         <module name="Auth" />
+        <module name="Booking" />
+        <module name="RatingReview" />
+        <module name="Notification" />
+        <module name="ChatService" />
         <module name="Service-Registry" />
       </profile>
     </annotationProcessing>
@@ -22,9 +25,12 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Auth" options="-parameters" />
       <module name="Booking" options="-parameters" />
+      <module name="ChatService" options="-parameters" />
       <module name="Gateway" options="-parameters" />
       <module name="Notification" options="-parameters" />
+      <module name="RatingReview" options="-parameters" />
       <module name="Service-Registry" options="-parameters" />
+      <module name="ServiceCatalogueService" options="-parameters" />
       <module name="User" options="-parameters" />
       <module name="service-registry" options="-parameters" />
     </option>

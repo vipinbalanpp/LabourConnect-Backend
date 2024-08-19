@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: rating-review
+  datasource:
+    url: jdbc:postgresql://localhost:5432/rating_review
+    username: postgres
+    password: '1205'
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+    hibernate:
+      ddl-auto: update
+server:
+  port: 8086

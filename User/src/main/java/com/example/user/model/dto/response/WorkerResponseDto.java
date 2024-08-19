@@ -2,7 +2,6 @@ package com.example.user.model.dto.response;
 
 import com.example.user.model.dto.AddressDto;
 import com.example.user.model.dto.ServiceDto;
-import com.example.user.model.entity.Address;
 import com.example.user.model.entity.Roles;
 import com.example.user.model.entity.Worker;
 import com.example.user.model.entity.Works;
@@ -22,6 +21,7 @@ import java.util.List;
 public class WorkerResponseDto {
     private Long id;
     private String fullName;
+    private String username;
     private String email;
     private ServiceDto service;
     private Long experience;
@@ -39,9 +39,8 @@ public class WorkerResponseDto {
     private List<Works> works;
     public WorkerResponseDto(Worker worker){
         this.fullName =worker.getFullName();
+        this.username = worker.getUsername();
         this.email = worker.getEmail();
-        if(worker.getService() != null)
-        this.service = new ServiceDto(worker.getService());
         this.experience = worker.getExperience();
         this.mobileNumber = worker.getMobileNumber();
         this.id = worker.getId();

@@ -7,7 +7,6 @@ import com.example.user.model.dto.response.UserResponse;
 import com.example.user.model.dto.response.UserResponseDto;
 import com.example.user.model.dto.response.WorkerResponse;
 import com.example.user.model.dto.response.WorkerResponseDto;
-import com.example.user.service.ServicesService;
 import com.example.user.service.UserService;
 import com.example.user.service.util.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -69,7 +69,7 @@ public class UserController {
         return new ResponseEntity<>(userResponseDto,HttpStatus.OK);
     }
     @GetMapping("/workerDetails")
-    public ResponseEntity<WorkerResponseDto> getWorkerDetailsByOrEmail(@RequestParam (required = false) Long id,
+    public ResponseEntity<WorkerResponseDto> getWorkerDetailsByIdOrEmail(@RequestParam (required = false) Long id,
                                                                   @RequestParam(required = false) String email){
         return new ResponseEntity<>(   userService.getWorkerDetailsByIdOrEmail(id,email),HttpStatus.OK);
     }
@@ -91,9 +91,11 @@ public class UserController {
                                                          @RequestParam(required = false) Integer pageSize,
                                                          @RequestParam(required = false) Long serviceId,
                                                          @RequestParam(required = false) String searchInput,
-                                                         @RequestParam(required = false) Boolean isBlocked){
+                                                         @RequestParam(required = false) Boolean isBlocked,
+                                                         @RequestParam(required = false) String priceSort,
+                                                         @RequestParam (required = false) String experienceSort){
         try {
-            WorkerResponse workerResponse = userService.getAllWorkers(pageNumber,searchInput,isBlocked,serviceId,pageSize);
+            WorkerResponse workerResponse = userService.getAllWorkers(pageNumber,searchInput,isBlocked,serviceId,pageSize,priceSort,experienceSort);
             return new ResponseEntity<>(workerResponse,HttpStatus.OK);
         }catch (RuntimeException e){
             throw  new RuntimeException("Something went wrong");

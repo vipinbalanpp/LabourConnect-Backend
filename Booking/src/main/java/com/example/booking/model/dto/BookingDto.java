@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -17,8 +18,8 @@ public class BookingDto {
     private Long userId;
     private Long workerId;
     private String workDescription;
-    private Date bookingDate;
-    private Date workDate;
+    private LocalDate bookingDate;
+    private LocalDate workDate;
     private String status;
     private Double serviceCharge;
     private String cancellationReason;

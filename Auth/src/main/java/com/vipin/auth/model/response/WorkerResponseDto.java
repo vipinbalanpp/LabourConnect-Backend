@@ -18,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 public class WorkerResponseDto {
     private String fullName;
+    private String username;
     private String email;
     private ServiceDto service;
     private Long experience;

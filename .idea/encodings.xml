@@ -3,10 +3,13 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/Auth/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Booking/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ChatService/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Notification/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/RatingReview/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Service-Registry/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Service-Registry/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ServiceCatalogueService/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/User/src/main/java" charset="UTF-8" />
   </component>
 </project>

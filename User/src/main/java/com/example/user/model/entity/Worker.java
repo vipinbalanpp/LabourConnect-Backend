@@ -18,10 +18,9 @@ public class Worker {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String fullName;
+    private String username;
     private String email;
-    @ManyToOne
-    @JoinColumn(name = "service_id", referencedColumnName = "serviceId")
-    private Services service;
+    private Long serviceId;
     private Long experience;
     private String mobileNumber;
     private double serviceCharge;
@@ -40,7 +39,8 @@ public class Worker {
     private boolean isVerified;
     private LocalDateTime createdAt;
     public Worker(WorkerRequestDto workerRequestDto) {
-        this.fullName = workerRequestDto.getFullname();
+        this.fullName = workerRequestDto.getFullName();
+        this.username = workerRequestDto.getUsername();
         this.email = workerRequestDto.getEmail();
         this.experience = workerRequestDto.getExperience();
         this.mobileNumber = workerRequestDto.getMobileNumber();

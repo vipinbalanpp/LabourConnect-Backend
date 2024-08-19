@@ -1,4 +1,4 @@
-package com.vipin.notification.controller;
+package com.vipin.notification.exception;
 
 import com.vipin.notification.exception.InvalidEmailException;
 import org.springframework.http.ResponseEntity;

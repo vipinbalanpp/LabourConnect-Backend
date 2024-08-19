@@ -9,6 +9,7 @@ import lombok.Setter;
 public class UserRequestDto {
     private Roles role;
     private String fullName;
+    private String username;
     private String password;
     private String email;
 

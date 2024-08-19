@@ -13,7 +13,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WorkerRequestDto {
-    private String fullname;
+    private String fullName;
+    private String username;
     private String email;
     private Roles role;
     private String mobileNumber;
@@ -21,13 +22,13 @@ public class WorkerRequestDto {
     private String profileImageUrl;
     private String gender;
     private String password;
-    private Long expertiseIn;
+    private Long serviceId;
     private Long experience;
     private Double serviceCharge;
     private String houseName;
     private String street;
     private String city;
     private String state;
-    private String pincode;
+    private String pinCode;
     private String about;
 }

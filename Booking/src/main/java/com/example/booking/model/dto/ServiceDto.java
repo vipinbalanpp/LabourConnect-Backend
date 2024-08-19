@@ -11,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ServiceDto {
     private String serviceName;
-    private String logo;
+    private String image;
     private String description;
 }

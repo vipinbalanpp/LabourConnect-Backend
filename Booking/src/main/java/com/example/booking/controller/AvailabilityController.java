@@ -21,6 +21,7 @@ public class AvailabilityController {
     @PutMapping("/set-availability-dates")
     public ResponseEntity<AvailabilityDateResponse> setAvailabilityDates(@RequestParam long workerId,
                                                                          @RequestBody List<Date> dates){
+        dates.forEach(date-> System.out.println(date+"--->date selected"));
         return new ResponseEntity<>( availabilityService.setAvailableDates(workerId,dates), HttpStatus.OK);
     }
 }

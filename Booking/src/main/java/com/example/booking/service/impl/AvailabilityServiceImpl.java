@@ -2,11 +2,14 @@ package com.example.booking.service.impl;
 import com.example.booking.model.dto.AvailabilityDateResponse;
 import com.example.booking.model.entity.Availability;
 import com.example.booking.model.entity.Booking;
+import com.example.booking.model.entity.Status;
 import com.example.booking.repository.AvailabilityRepository;
 import com.example.booking.repository.BookingRepository;
 import com.example.booking.service.AvailabilityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,8 +23,8 @@ public class AvailabilityServiceImpl implements AvailabilityService
     private final AvailabilityRepository availabilityRepository;
     @Override
     public AvailabilityDateResponse getAvailabilityDates(Long workerId) {
-        List<Booking> bookings = bookingRepository.findByWorkerId(workerId);
-        List<Date> bookingDates = new ArrayList<>();
+        List<Booking> bookings = bookingRepository.findByWorkerIdAndStatus(workerId, Status.CONFIRMED);
+        List<LocalDate> bookingDates = new ArrayList<>();
         bookings.forEach(booking -> bookingDates.add(booking.getWorkDate()));
         Availability availability = availabilityRepository.findByWorkerId(workerId);
         AvailabilityDateResponse availabilityDateResponse = new AvailabilityDateResponse();
@@ -40,7 +43,7 @@ public class AvailabilityServiceImpl implements AvailabilityService
         availability.addNotAvailableDates(dates);
         availability.setWorkerId(workerId);
         availabilityRepository.save(availability);
-        List<Booking> bookings = bookingRepository.findByWorkerId(workerId);
+        List<Booking> bookings = bookingRepository.findByWorkerIdAndStatus(workerId,Status.CONFIRMED);
         AvailabilityDateResponse availabilityDateResponse = new AvailabilityDateResponse();
         availabilityDateResponse.setBookedDates(bookings.stream().map(booking ->  booking.getWorkDate()).collect(Collectors.toList()));
         if(availability!=null)

@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class UserResponseDto {
     private Long id;
     private String fullName;
+    private String username;
     private String email;
     private String profileImageUrl;
     private Roles role;
@@ -27,7 +28,8 @@ public class UserResponseDto {
     private boolean isBlocked;
     public UserResponseDto (User user){
         this.id = user.getId();
-        this.fullName = user.getFullName();;
+        this.fullName = user.getFullName();
+        this.username = user.getUsername();
         this.email = user.getEmail();
         this.profileImageUrl = user.getProfileImageUrl();
         this.role = user.getRole();

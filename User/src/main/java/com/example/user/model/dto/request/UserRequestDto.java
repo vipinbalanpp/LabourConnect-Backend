@@ -13,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserRequestDto {
     private String fullName;
+    private String username;
     private String email;
     private Roles role;
 

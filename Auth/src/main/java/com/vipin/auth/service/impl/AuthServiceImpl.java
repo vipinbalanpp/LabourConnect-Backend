@@ -9,7 +9,7 @@ import com.vipin.auth.model.entity.User;
 import com.vipin.auth.model.response.LoginResponse;
 import com.vipin.auth.model.response.WorkerResponseDto;
 import com.vipin.auth.repository.UserRepository;
-import com.vipin.auth.service.UserService;
+import com.vipin.auth.service.AuthService;
 import com.vipin.auth.service.jwt.JwtService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
@@ -23,16 +23,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserServiceImpl implements UserService {
+public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
@@ -46,22 +46,17 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(userDto.getEmail())) {
             throw new InvalidEmailException("Email id already exists");
         }
-        User user = new User();
-        user.setFullName(userDto.getFullName());
-        user.setEmail(userDto.getEmail());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        if (userDto.getRole().equals(Roles.USER)) {
-            user.setRole(Roles.USER);
-        } else if (userDto.getRole().equals(Roles.ADMIN)) {
-            user.setRole(Roles.ADMIN);
+        if(userRepository.existsByUsername(userDto.getUsername())){
+            throw new RuntimeException("Username exists");
         }
+        User user = new User(userDto);
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setRole(Roles.USER);
+        user.setCreatedAt(LocalDateTime.now());
         UserCreationRequest userCreationRequest = modelMapper.map(userDto, UserCreationRequest.class);
         UserResponseDto userResponseDto = userServiceClient.createUser(userCreationRequest);
-        User registeredUser = userRepository.save(user);
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        userDto.getEmail(), userDto.getPassword()));
-        String token = jwtService.generateToken(authentication.getName());
+        userRepository.save(user);
+        String token = jwtService.generateToken(user.getEmail());
         setCookieInResponse(response, token);
         return userResponseDto;
     }
@@ -71,22 +66,20 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(workerRequestDto.getEmail())) {
             throw new InvalidEmailException("Mail Id exists");
         }
+        if(userRepository.existsByUsername(workerRequestDto.getUsername())){
+            throw new RuntimeException("Username exists");
+        }
         User user = new User();
-        user.setFullName(workerRequestDto.getFullname());
+        user.setFullName(workerRequestDto.getFullName());
         user.setEmail(workerRequestDto.getEmail());
+        user.setUsername(workerRequestDto.getUsername());
         user.setPassword(passwordEncoder.encode(workerRequestDto.getPassword()));
         user.setRole(Roles.WORKER);
+        user.setCreatedAt(LocalDateTime.now());
         userRepository.save(user);
-        log.info("saved user:{}",user);
-        WorkerCreationRequest workerCreationRequest = modelMapper.map(workerRequestDto, WorkerCreationRequest.class);
-        log.info("worker creation request:{}",workerCreationRequest);
+        WorkerCreationRequest workerCreationRequest = new WorkerCreationRequest(workerRequestDto);
         WorkerResponseDto workerResponse = userServiceClient.createWorker(workerCreationRequest);
-        log.info("worker response from user service:{}" ,workerResponse);
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        workerRequestDto.getEmail(), workerRequestDto.getPassword()));
-        String token = jwtService.generateToken(authentication.getName());
-        log.info("token:{}",token);
+        String token = jwtService.generateToken(workerRequestDto.getEmail());
         setCookieInResponse(response, token);
         return workerResponse;
     }

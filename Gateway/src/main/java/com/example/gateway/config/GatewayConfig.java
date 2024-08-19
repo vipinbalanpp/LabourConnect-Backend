@@ -21,9 +21,12 @@ public class GatewayConfig {
                 .route("user-route",p->
                                 p.path("/user/**")
                         .uri("http://localhost:8083"))
-                .route("user-route",p->
+                .route("booking-route",p->
                         p.path("/booking/**")
                                 .uri("http://localhost:8084"))
+                .route("service-route",p->
+                        p.path("/service/**")
+                                .uri("http://localhost:8085"))
                 .build();
     }
     @Bean

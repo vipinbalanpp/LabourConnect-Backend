@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Date;
 @Getter
 @Setter
@@ -13,6 +14,19 @@ import java.util.Date;
 @NoArgsConstructor
 public class
 BookingResponseDto {
+
+    private String id;
+    private UserDto user;
+    private WorkerDto worker;
+    private String workDescription;
+    private LocalDate bookingDate;
+    private LocalDate workDate;
+    private Status status;
+    private Double serviceCharge;
+    private String cancellationReason;
+    private String reasonForRejection;
+    private String cancelledBy;
+    private AddressDto workLocationAddress;
     public BookingResponseDto(Booking booking){
         this.id = booking.getId();
         this.workDescription = booking.getWorkDescription();
@@ -22,17 +36,7 @@ BookingResponseDto {
         this.serviceCharge = booking.getServiceCharge();
         this.cancellationReason = booking.getCancellationReason();
         this.cancelledBy = booking.getCancelledBy();
+        this.reasonForRejection = booking.getReasonForRejection();
         this.workLocationAddress = new AddressDto(booking.getWorkLocationAddress());
     }
-    private String id;
-    private UserDto user;
-    private WorkerDto worker;
-    private String workDescription;
-    private Date bookingDate;
-    private Date workDate;
-    private Status status;
-    private Double serviceCharge;
-    private String cancellationReason;
-    private String cancelledBy;
-    private AddressDto workLocationAddress;
 }

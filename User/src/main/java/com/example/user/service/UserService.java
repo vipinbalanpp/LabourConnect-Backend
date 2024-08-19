@@ -11,6 +11,7 @@ import com.example.user.model.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Date;
 import java.util.List;
 
 public interface UserService {
@@ -29,7 +30,7 @@ public interface UserService {
     Boolean blockUser(String email);
 
 
-    WorkerResponse getAllWorkers(Integer pageNumber, String searchInput, Boolean isBlocked, Long serviceId, Integer pageSize);
+    WorkerResponse getAllWorkers(Integer pageNumber, String searchInput, Boolean isBlocked, Long serviceId, Integer pageSize, String priceSort,String experienceSort);
 
     Boolean blockWorker(String email);
 

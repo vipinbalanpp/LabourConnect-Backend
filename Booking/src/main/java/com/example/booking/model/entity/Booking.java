@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Document(collection = "booking")
@@ -18,10 +19,11 @@ public class Booking {
     private Long userId;
     private Long workerId;
     private String workDescription;
-    private Date bookingDate;
-    private Date workDate;
+    private LocalDate bookingDate;
+    private LocalDate workDate;
     private Status status;
     private Double serviceCharge;
+    private String reasonForRejection;
     private String cancellationReason;
     private String cancelledBy;
     private Address workLocationAddress;
