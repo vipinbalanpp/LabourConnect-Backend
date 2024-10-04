@@ -11,13 +11,14 @@
         <module name="Gateway" />
         <module name="Auth" />
         <module name="Booking" />
+        <module name="chat-service" />
         <module name="RatingReview" />
         <module name="Notification" />
-        <module name="ChatService" />
         <module name="Service-Registry" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="ChatService" target="17" />
       <module name="service-registry" target="17" />
     </bytecodeTargetLevel>
   </component>
@@ -32,6 +33,7 @@
       <module name="Service-Registry" options="-parameters" />
       <module name="ServiceCatalogueService" options="-parameters" />
       <module name="User" options="-parameters" />
+      <module name="chat-service" options="-parameters" />
       <module name="service-registry" options="-parameters" />
     </option>
   </component>

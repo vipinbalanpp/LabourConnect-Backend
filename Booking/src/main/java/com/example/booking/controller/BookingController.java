@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @RestController
@@ -32,31 +33,28 @@ public class BookingController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date workDate,
             @RequestParam(required = false) Long serviceId) {
-
-        System.out.println("--------------<>---------");
-        System.out.println("UserId: " + userId);
-        System.out.println("WorkerId: " + workerId);
-        System.out.println("PageNumber: " + pageNumber);
-        System.out.println("Status: " + status);
-        System.out.println("WorkDate: " + workDate);
-        System.out.println("ServiceId: " + serviceId);
-        System.out.println("----------------<>-----------");
-
-        if (userId != null) {
-            return new ResponseEntity<>(bookingService.getAllBookingsOfUser(userId, pageNumber), HttpStatus.OK);
-        } else if (workerId != null) {
-            Status statusEnum = null;
-            if (status != null && !status.isEmpty()) {
-                try {
-                    statusEnum = Status.valueOf(status.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    throw new RuntimeException("Invalid status value: " + status);
-                }
-            }
-            return new ResponseEntity<>(bookingService.getAllBookingsOfWorker(workerId, statusEnum, workDate, serviceId, pageNumber), HttpStatus.OK);
-        } else {
-            throw new RuntimeException("Something went wrong while fetching bookings");
-        }
+//        System.out.println(status+" : this is status from frontend");
+//        if (userId != null) {
+//            BookingsResponse responses = bookingService.getAllBookingsOfUser(userId, pageNumber);
+//            responses.getBookings().forEach(booking->    System.out.println("Booking ID: " + booking.getId() + ", Booking Date: " + booking.getBookingDate()+", Status::" +booking.getStatus()));
+//            return new ResponseEntity<>(bookingService.getAllBookingsOfUser(userId, pageNumber), HttpStatus.OK);
+//        } else if (workerId != null) {
+//            Status statusEnum = null;
+//            if (status != null && !status.isEmpty()) {
+//                try {
+//                    statusEnum = Status.valueOf(status.toUpperCase());
+//                    System.out.println(statusEnum+" : this is status enum");
+//                } catch (IllegalArgumentException e) {
+//                    throw new RuntimeException("Invalid status value: " + status);
+//                }
+//            }
+//            return new ResponseEntity<>(bookingService.getAllBookingsOfWorker(workerId, statusEnum, workDate, serviceId, pageNumber), HttpStatus.OK);
+//        } else {
+//            throw new RuntimeException("Something went wrong while fetching bookings");
+//        }
+        BookingsResponse bookingsResponse = bookingService.getAllBookings(userId,workerId,pageNumber,status,workDate,serviceId);
+        System.out.println(bookingsResponse.getTotalNumberOfPages()+"from controller");
+        return new ResponseEntity<>(bookingsResponse,HttpStatus.OK);
     }
 
 
@@ -79,9 +77,19 @@ public class BookingController {
     @PutMapping("/confirm/{bookingId}")
     public ResponseEntity<String> confirmBooking(@PathVariable String bookingId){
         try {
-            System.out.println(bookingId);
             bookingService.confirmBooking(bookingId);
             return new ResponseEntity<>("booking confirmed successfully",HttpStatus.OK);
+        }catch (Exception e){
+            throw  new RuntimeException("Something went wrong");
+        }
+    }
+    @PutMapping("/reschedule/{bookingId}")
+    public ResponseEntity<String> rescheduleBooking(@PathVariable String bookingId,
+                                                    @RequestParam LocalDate rescheduleDate,
+                                                    @RequestParam Boolean isWorker){
+        try {
+            bookingService.reScheduleBooking(bookingId,rescheduleDate,isWorker);
+            return new ResponseEntity<>("booking rescheduled successfully",HttpStatus.OK);
         }catch (Exception e){
             throw  new RuntimeException("Something went wrong");
         }

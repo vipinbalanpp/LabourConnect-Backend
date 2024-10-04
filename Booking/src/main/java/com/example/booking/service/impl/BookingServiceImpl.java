@@ -2,13 +2,14 @@ package com.example.booking.service.impl;
 
 import com.example.booking.exceptions.EntityNotFoundException;
 import com.example.booking.model.dto.*;
+import com.example.booking.model.entity.Role;
 import com.example.booking.model.entity.Status;
 import com.example.booking.repository.BookingRepository;
 import com.example.booking.client.UserServiceClient;
 import com.example.booking.model.entity.Booking;
 import com.example.booking.service.BookingService;
-import com.example.booking.service.util.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,35 +22,35 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserServiceClient userServiceClient;
     @Override
     public void createBooking(BookingDto bookingDto) {
         if(bookingRepository.existsByWorkerIdAndUserIdAndWorkDate(bookingDto.getWorkerId(),bookingDto.getUserId(),bookingDto.getWorkDate())){
-            Booking booking = bookingRepository.findByWorkerIdAndUserIdAndWorkDate(bookingDto.getWorkerId(),bookingDto.getUserId(),bookingDto.getBookingDate());
+            Booking booking = bookingRepository.findByWorkerIdAndUserIdAndWorkDate(bookingDto.getWorkerId(),bookingDto.getUserId(),bookingDto.getWorkDate());
+            log.info("booking: {}",booking);
             if(booking.getStatus().equals(Status.CONFIRMED)){
-                throw new RuntimeException("You already having a booking on this date");
+                throw new RuntimeException("You already booked this worker on this date");
             }else if(booking.getStatus().equals(Status.REQUESTED)){
-                throw new RuntimeException("You already requested for service");
+                throw new RuntimeException("You already requested for service on this date");
             }
         }
-        Booking booking = Booking.builder()
-                .userId(bookingDto.getUserId())
-                .workerId(bookingDto.getWorkerId())
-                .workDescription(bookingDto.getWorkDescription())
-                .bookingDate(bookingDto.getBookingDate())
-                .workDate(bookingDto.getWorkDate())
-                .status(Status.REQUESTED)
-                .serviceCharge(bookingDto.getServiceCharge())
-                .cancellationReason(bookingDto.getCancellationReason())
-                .cancelledBy(bookingDto.getCancelledBy())
-                .workLocationAddress(bookingDto.getWorkAddress())
-                .build();
-        bookingRepository.save(booking);
+            Booking booking = Booking.builder()
+                    .userId(bookingDto.getUserId())
+                    .workerId(bookingDto.getWorkerId())
+                    .workDescription(bookingDto.getWorkDescription())
+                    .bookingDate(bookingDto.getBookingDate())
+                    .workDate(bookingDto.getWorkDate())
+                    .status(Status.REQUESTED)
+                    .serviceCharge(bookingDto.getServiceCharge())
+                    .cancellationReason(bookingDto.getCancellationReason())
+                    .cancelledBy(bookingDto.getCancelledBy())
+                    .workLocationAddress(bookingDto.getWorkAddress())
+                    .build();
+            bookingRepository.save(booking);
     }
-
-
     public List<BookingResponseDto> mapBookingsToResponse(Page<Booking> bookings){
         List<BookingResponseDto> bookingResponseDtos = new ArrayList<>();
         for(Booking booking:bookings){
@@ -60,7 +61,6 @@ public class BookingServiceImpl implements BookingService {
             WorkerDto workerDto = userServiceClient.getWorkerDetailsByIdOrEmail(booking.getWorkerId());
             bookingDto.setWorker(workerDto);
         }
-        Collections.reverse(bookingResponseDtos);
         return bookingResponseDtos;
     }
     public BookingResponseDto mapBookingToResponse(Booking booking){
@@ -71,51 +71,27 @@ public class BookingServiceImpl implements BookingService {
             bookingDto.setWorker(workerDto);
         return bookingDto;
     }
-
     @Override
-    public BookingResponseDto reScheduleBooking(String bookingId, Boolean isWorker) {
-//      Booking booking = bookingRepository.findById(bookingId).orElseThrow();
-//      booking.setStatus(Status.REQUESTED_FOR_RESCHEDULE);
-//      BookingResponseDto bookingResponseDto = new BookingResponseDto(booking);
-//      bookingResponseDto.setWorker(w);
-        return null;
-
-    }
-
-    @Override
-    public BookingsResponse getAllBookingsOfUser(Long userId,Integer pageNumber) {
-        Integer pageSize = 4;
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
-        Page<Booking> bookings = bookingRepository.findByUserId(userId,pageable);
-        List<BookingResponseDto>  bookingResponseDtos;
-        if(bookings != null){
-            bookingResponseDtos =mapBookingsToResponse(bookings);
+    public BookingResponseDto reScheduleBooking(String bookingId,LocalDate rescheduleDate, Boolean isWorker) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow();
+        System.out.println(booking.getStatus()+" :booking status");
+        if(booking.getStatus().equals(Status.REQUESTED)){
+            booking.setWorkDate(rescheduleDate);
+            bookingRepository.save(booking);
+        }else if(booking.getStatus().equals(Status.CONFIRMED)) {
+            booking.setStatus(Status.REQUESTED_FOR_RESCHEDULE);
+            booking.setRescheduleRequestedDate(rescheduleDate);
+            if (isWorker) {
+                booking.setRescheduleRequestedBy(Role.WORKER);
+            } else {
+                booking.setRescheduleRequestedBy(Role.USER);
+            }
+            bookingRepository.save(booking);
         }
-        else bookingResponseDtos= null;
-        int totalPages = (int) Math.ceil((double) bookingRepository.countByUserId(userId) / pageSize);
-        return new BookingsResponse(bookingResponseDtos, totalPages);
-    }
+        return mapBookingToResponse(booking);
 
-    @Override
-    public BookingsResponse getAllBookingsOfWorker(Long workerId, Status status, Date workDate, Long serviceId, Integer pageNumber) {
-        Integer pageSize = 4;
-        Pageable pageable = PageRequest.of(pageNumber,pageSize);
-        Page<Booking> bookings = bookingRepository.findBookingsByWorkerIdAndCriteria(
-               workerId,
-               status,
-                workDate,
-                serviceId,
-                pageable
-        );
-        List<BookingResponseDto>  bookingResponseDtos;
-        if(bookings != null){
-            bookingResponseDtos =    mapBookingsToResponse(bookings);
-        }
-        else bookingResponseDtos= null;
-        int totalPages = (int) Math.ceil((double) bookingRepository.countByWorkerId(workerId) / pageSize);
-        return new BookingsResponse(bookingResponseDtos,totalPages);
     }
-    @Scheduled(cron = "0 34 16 * * ?")
+    @Scheduled(cron = "0 43 12 * * ?")
     public void autoCompleteWork() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         System.out.println("Schedule working");
@@ -127,10 +103,6 @@ public class BookingServiceImpl implements BookingService {
             bookingRepository.save(booking);
         }
     }
-
-
-
-
     @Override
     @Transactional
     public BookingResponseDto cancelBooking(String bookingId,   String cancellationReason,String cancelledBy) {
@@ -153,7 +125,6 @@ public class BookingServiceImpl implements BookingService {
          throw new RuntimeException("Something went wrong while cancelling booking");
      }
     }
-
     @Override
     public void confirmBooking(String bookingId) {
        try {
@@ -169,8 +140,6 @@ public class BookingServiceImpl implements BookingService {
        }
 
     }
-
-
     @Override
     public void rejectBooking(String bookingId,String reasonForRejection) {
         try {
@@ -185,5 +154,26 @@ public class BookingServiceImpl implements BookingService {
             throw new RuntimeException("Something went wrong while confirming booking");
 
         }
+    }
+    @Override
+    public BookingsResponse getAllBookings(Long userId, Long workerId, Integer pageNumber, String status, Date workDate, Long serviceId) {
+        Integer pageSize = 4;
+        Pageable pageable = PageRequest.of(pageNumber,pageSize);
+        Status statusEnum = null;
+            if (status != null && !status.isEmpty()) {
+                try {
+                    statusEnum = Status.valueOf(status.toUpperCase());
+                    System.out.println(statusEnum+" : this is status enum");
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException("Invalid status value: " + status);
+                }
+            }
+        Page<Booking> bookings = bookingRepository.findBookingsByCriteria(workerId,userId,statusEnum,workDate,serviceId,pageable);
+        List<BookingResponseDto>  bookingResponseDtos;
+        if(bookings != null){
+            bookingResponseDtos =    mapBookingsToResponse(bookings);
+        }
+        else bookingResponseDtos= null;
+        return new BookingsResponse(bookingResponseDtos,bookings.getTotalPages());
     }
 }

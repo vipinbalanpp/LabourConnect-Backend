@@ -27,6 +27,7 @@ BookingResponseDto {
     private String reasonForRejection;
     private String cancelledBy;
     private AddressDto workLocationAddress;
+    private LocalDate rescheduleRequestedDate;
     public BookingResponseDto(Booking booking){
         this.id = booking.getId();
         this.workDescription = booking.getWorkDescription();
@@ -37,6 +38,7 @@ BookingResponseDto {
         this.cancellationReason = booking.getCancellationReason();
         this.cancelledBy = booking.getCancelledBy();
         this.reasonForRejection = booking.getReasonForRejection();
+        this.rescheduleRequestedDate = booking.getRescheduleRequestedDate();
         this.workLocationAddress = new AddressDto(booking.getWorkLocationAddress());
     }
 }

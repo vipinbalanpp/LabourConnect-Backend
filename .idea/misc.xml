@@ -17,7 +17,13 @@
         <option value="$PROJECT_DIR$/ServiceCatalogueService/pom.xml" />
         <option value="$PROJECT_DIR$/RatingReview/pom.xml" />
         <option value="$PROJECT_DIR$/ChatService/pom.xml" />
+        <option value="$PROJECT_DIR$/chat-service/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/ChatService/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="22" project-jdk-type="JavaSDK">

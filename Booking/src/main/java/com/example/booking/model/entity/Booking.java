@@ -25,6 +25,8 @@ public class Booking {
     private Double serviceCharge;
     private String reasonForRejection;
     private String cancellationReason;
+    private Role rescheduleRequestedBy;
+    private LocalDate rescheduleRequestedDate;
     private String cancelledBy;
     private Address workLocationAddress;
 }

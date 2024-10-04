@@ -8,5 +8,5 @@ import org.springframework.data.domain.Pageable;
 import java.util.Date;
 
 public interface BookingRepositoryCustom {
-    Page<Booking> findBookingsByWorkerIdAndCriteria(Long workerId, Status status, Date workDate, Long serviceId, Pageable pageable);
+    Page<Booking> findBookingsByCriteria(Long workerId,Long userId,Status status,Date workDate,Long serviceId,Pageable pageable);
 }
