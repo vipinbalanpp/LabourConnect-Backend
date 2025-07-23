@@ -1,5 +1,6 @@
 package com.example.booking.model.dto;
 import com.example.booking.model.entity.Booking;
+import com.example.booking.model.entity.Role;
 import com.example.booking.model.entity.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +28,7 @@ BookingResponseDto {
     private String reasonForRejection;
     private String cancelledBy;
     private AddressDto workLocationAddress;
+    private Role rescheduleRequestedBy;
     private LocalDate rescheduleRequestedDate;
     public BookingResponseDto(Booking booking){
         this.id = booking.getId();
@@ -39,6 +41,7 @@ BookingResponseDto {
         this.cancelledBy = booking.getCancelledBy();
         this.reasonForRejection = booking.getReasonForRejection();
         this.rescheduleRequestedDate = booking.getRescheduleRequestedDate();
+        this.rescheduleRequestedBy = booking.getRescheduleRequestedBy();
         this.workLocationAddress = new AddressDto(booking.getWorkLocationAddress());
     }
 }

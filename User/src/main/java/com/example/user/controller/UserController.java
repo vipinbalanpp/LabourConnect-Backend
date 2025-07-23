@@ -1,12 +1,15 @@
 package com.example.user.controller;
 import com.example.user.model.dto.AddressDto;
+import com.example.user.model.dto.PersonInfoForChat;
 import com.example.user.model.dto.request.EditWorkerRequestDto;
 import com.example.user.model.dto.request.UserRequestDto;
+import com.example.user.model.dto.request.UsersListForChatRequestDto;
 import com.example.user.model.dto.request.WorkerRequestDto;
 import com.example.user.model.dto.response.UserResponse;
 import com.example.user.model.dto.response.UserResponseDto;
 import com.example.user.model.dto.response.WorkerResponse;
 import com.example.user.model.dto.response.WorkerResponseDto;
+import com.example.user.model.entity.Roles;
 import com.example.user.service.UserService;
 import com.example.user.service.util.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,8 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/user/api/v1")
@@ -185,6 +190,11 @@ public class UserController {
         }catch (RuntimeException e){
             throw new RuntimeException("Something went wrong while changing fullname");
         }
+    }
+    @PostMapping("/getUsersDetailsForChat")
+    public ResponseEntity<List<PersonInfoForChat>>getUsersDetailsForChat(@RequestBody UsersListForChatRequestDto usersListForChatRequestDto){
+        List<PersonInfoForChat> users = userService.getUsersDetailsForChat(usersListForChatRequestDto.getUserIds(), Roles.valueOf(usersListForChatRequestDto.getRole()));
+        return new ResponseEntity<>(users,HttpStatus.OK);
     }
 
 }

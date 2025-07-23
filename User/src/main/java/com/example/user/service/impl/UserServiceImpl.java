@@ -3,6 +3,7 @@ import com.example.user.client.AuthServiceClient;
 import com.example.user.client.ServiceCatalogueServiceClient;
 import com.example.user.excepation.UserNotFoundException;
 import com.example.user.model.dto.AddressDto;
+import com.example.user.model.dto.PersonInfoForChat;
 import com.example.user.model.dto.ServiceDto;
 import com.example.user.model.dto.request.EditWorkerRequestDto;
 import com.example.user.model.dto.request.UserRequestDto;
@@ -29,8 +30,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -179,6 +179,31 @@ public class UserServiceImpl implements UserService {
               return   workerResponseDto;
             }).toList();
             return workerResponses;
+    }
+
+    @Override
+    public List<PersonInfoForChat> getUsersDetailsForChat(Set<String> usersIds, Roles roles) {
+        List<PersonInfoForChat> users = new ArrayList<>();
+        if(roles.equals(Roles.USER)){
+            for(String userId : usersIds){
+               User user = userRepository.findById(Long.valueOf(userId)).orElseThrow();
+               PersonInfoForChat personInfoForChat = new PersonInfoForChat();
+               personInfoForChat.setId(String.valueOf(user.getId()));
+               personInfoForChat.setName(user.getUsername());
+               personInfoForChat.setProfileImageUrl(user.getProfileImageUrl());
+               users.add(personInfoForChat);
+            }
+        }else{
+            for(String userId : usersIds){
+                Worker worker = workerRepository.findById(Long.valueOf(userId)).orElseThrow();
+                PersonInfoForChat personInfoForChat = new PersonInfoForChat();
+                personInfoForChat.setId(String.valueOf(worker.getId()));
+                personInfoForChat.setName(worker.getUsername());
+                personInfoForChat.setProfileImageUrl(worker.getProfileImageUrl());
+                users.add(personInfoForChat);
+            }
+        }
+        return users;
     }
 
     @Override

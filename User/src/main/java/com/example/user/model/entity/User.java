@@ -30,6 +30,7 @@ public class User {
     private boolean isBlocked;
     public User(UserRequestDto userResponseDto){
         this.fullName = userResponseDto.getFullName();
+        this.username = userResponseDto.getUsername();
         this.email = userResponseDto.getEmail();
         this.role = Roles.USER;
         this.createdAt = LocalDateTime.now();

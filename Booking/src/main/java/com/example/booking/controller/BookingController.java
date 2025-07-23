@@ -2,7 +2,6 @@ package com.example.booking.controller;
 import com.example.booking.model.dto.BookingDto;
 import com.example.booking.model.dto.BookingResponseDto;
 import com.example.booking.model.dto.BookingsResponse;
-import com.example.booking.model.entity.Status;
 import com.example.booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -33,34 +32,16 @@ public class BookingController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date workDate,
             @RequestParam(required = false) Long serviceId) {
-//        System.out.println(status+" : this is status from frontend");
-//        if (userId != null) {
-//            BookingsResponse responses = bookingService.getAllBookingsOfUser(userId, pageNumber);
-//            responses.getBookings().forEach(booking->    System.out.println("Booking ID: " + booking.getId() + ", Booking Date: " + booking.getBookingDate()+", Status::" +booking.getStatus()));
-//            return new ResponseEntity<>(bookingService.getAllBookingsOfUser(userId, pageNumber), HttpStatus.OK);
-//        } else if (workerId != null) {
-//            Status statusEnum = null;
-//            if (status != null && !status.isEmpty()) {
-//                try {
-//                    statusEnum = Status.valueOf(status.toUpperCase());
-//                    System.out.println(statusEnum+" : this is status enum");
-//                } catch (IllegalArgumentException e) {
-//                    throw new RuntimeException("Invalid status value: " + status);
-//                }
-//            }
-//            return new ResponseEntity<>(bookingService.getAllBookingsOfWorker(workerId, statusEnum, workDate, serviceId, pageNumber), HttpStatus.OK);
-//        } else {
-//            throw new RuntimeException("Something went wrong while fetching bookings");
-//        }
         BookingsResponse bookingsResponse = bookingService.getAllBookings(userId,workerId,pageNumber,status,workDate,serviceId);
         System.out.println(bookingsResponse.getTotalNumberOfPages()+"from controller");
         return new ResponseEntity<>(bookingsResponse,HttpStatus.OK);
     }
 
 
-    @PutMapping("/update")
-    public String updateBooking(){
-        return "updated";
+    @PutMapping("/update/{bookingId}")
+    public ResponseEntity<String> updateBooking(@PathVariable String bookingId,
+                                @RequestParam String status){
+       return new ResponseEntity<>(bookingService.updateBooking(bookingId,status),HttpStatus.OK);
     }
     @PutMapping("/cancel/{bookingId}")
     public ResponseEntity<BookingResponseDto> cancelBooking(@PathVariable String bookingId,
@@ -86,9 +67,10 @@ public class BookingController {
     @PutMapping("/reschedule/{bookingId}")
     public ResponseEntity<String> rescheduleBooking(@PathVariable String bookingId,
                                                     @RequestParam LocalDate rescheduleDate,
+                                                    @RequestParam(required = false) String status,
                                                     @RequestParam Boolean isWorker){
         try {
-            bookingService.reScheduleBooking(bookingId,rescheduleDate,isWorker);
+            bookingService.reScheduleBooking(bookingId,rescheduleDate,status,isWorker);
             return new ResponseEntity<>("booking rescheduled successfully",HttpStatus.OK);
         }catch (Exception e){
             throw  new RuntimeException("Something went wrong");

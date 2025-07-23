@@ -72,13 +72,18 @@ public class BookingServiceImpl implements BookingService {
         return bookingDto;
     }
     @Override
-    public BookingResponseDto reScheduleBooking(String bookingId,LocalDate rescheduleDate, Boolean isWorker) {
+    public BookingResponseDto reScheduleBooking(String bookingId,LocalDate rescheduleDate,String status, Boolean isWorker) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow();
         System.out.println(booking.getStatus()+" :booking status");
         if(booking.getStatus().equals(Status.REQUESTED)){
             booking.setWorkDate(rescheduleDate);
-            bookingRepository.save(booking);
-        }else if(booking.getStatus().equals(Status.CONFIRMED)) {
+        } else if(booking.getStatus().equals(Status.REQUESTED_FOR_RESCHEDULE)){
+            if(status.equals("cancel")){
+                booking.setStatus(Status.RESCHEDULE_REQUEST_REJECTED);
+            }else{
+                booking.setStatus(Status.RESCHEDULED);
+            }
+        } else if(booking.getStatus().equals(Status.CONFIRMED)) {
             booking.setStatus(Status.REQUESTED_FOR_RESCHEDULE);
             booking.setRescheduleRequestedDate(rescheduleDate);
             if (isWorker) {
@@ -86,10 +91,9 @@ public class BookingServiceImpl implements BookingService {
             } else {
                 booking.setRescheduleRequestedBy(Role.USER);
             }
-            bookingRepository.save(booking);
         }
+        bookingRepository.save(booking);
         return mapBookingToResponse(booking);
-
     }
     @Scheduled(cron = "0 43 12 * * ?")
     public void autoCompleteWork() {
@@ -157,7 +161,7 @@ public class BookingServiceImpl implements BookingService {
     }
     @Override
     public BookingsResponse getAllBookings(Long userId, Long workerId, Integer pageNumber, String status, Date workDate, Long serviceId) {
-        Integer pageSize = 4;
+        Integer pageSize = 6;
         Pageable pageable = PageRequest.of(pageNumber,pageSize);
         Status statusEnum = null;
             if (status != null && !status.isEmpty()) {
@@ -174,6 +178,15 @@ public class BookingServiceImpl implements BookingService {
             bookingResponseDtos =    mapBookingsToResponse(bookings);
         }
         else bookingResponseDtos= null;
+        log.info("Bookings response : {}",bookingResponseDtos);
         return new BookingsResponse(bookingResponseDtos,bookings.getTotalPages());
+    }
+
+    @Override
+    public String updateBooking(String bookingId, String status) {
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow();
+        booking.setStatus(Status.valueOf(status));
+        bookingRepository.save(booking);
+        return "Booking updated successfully";
     }
 }

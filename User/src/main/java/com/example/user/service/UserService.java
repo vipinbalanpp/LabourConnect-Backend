@@ -1,5 +1,6 @@
 package com.example.user.service;
 import com.example.user.model.dto.AddressDto;
+import com.example.user.model.dto.PersonInfoForChat;
 import com.example.user.model.dto.request.EditWorkerRequestDto;
 import com.example.user.model.dto.request.UserRequestDto;
 import com.example.user.model.dto.request.WorkerRequestDto;
@@ -7,12 +8,14 @@ import com.example.user.model.dto.response.UserResponse;
 import com.example.user.model.dto.response.UserResponseDto;
 import com.example.user.model.dto.response.WorkerResponse;
 import com.example.user.model.dto.response.WorkerResponseDto;
+import com.example.user.model.entity.Roles;
 import com.example.user.model.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public interface UserService {
     UserResponseDto createUser(UserRequestDto userRequest);
@@ -52,4 +55,6 @@ public interface UserService {
     WorkerResponseDto getWorkerDetailsByIdOrEmail(Long id,String email);
 
     List<WorkerResponseDto> getTopRatedWorkers();
+
+    List<PersonInfoForChat> getUsersDetailsForChat(Set<String> usersIds, Roles roles);
 }

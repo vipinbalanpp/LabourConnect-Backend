@@ -27,6 +27,9 @@ public class GatewayConfig {
                 .route("service-route",p->
                         p.path("/service/**")
                                 .uri("http://localhost:8085"))
+                .route("chat-route",p->
+                        p.path("/chat/**")
+                                .uri("http://localhost:8087"))
                 .build();
     }
     @Bean
